@@ -9,7 +9,15 @@ import { BalanceChart } from '../graphs/RepaymentCharts';
 
 const DEFAULT_START_DATE = new Date().toISOString().slice(0, 10);
 
-export const RepaymentCalculator: React.FC = () => {
+interface RepaymentCalculatorProps {
+  mode: 'simple' | 'advanced';
+  onModeChange: (mode: 'simple' | 'advanced') => void;
+}
+
+export const RepaymentCalculator: React.FC<RepaymentCalculatorProps> = ({
+  mode,
+  onModeChange
+}) => {
   const [amount, setAmount] = useState(500000);
   const [rate, setRate] = useState(6);
   const [years, setYears] = useState(30);
@@ -45,7 +53,61 @@ export const RepaymentCalculator: React.FC = () => {
   return (
     <div className="two-column-layout">
       <section aria-label="Repayment inputs" className="inputs-pane">
-        <h2 className="page-heading">Repayments</h2>
+        <header
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '0.3rem'
+          }}
+        >
+          <h2 className="page-heading" style={{ marginBottom: 0 }}>
+            Original loan
+          </h2>
+          <div
+            style={{
+              display: 'inline-flex',
+              borderRadius: '999px',
+              border: '1px solid #d1d5db',
+              padding: '2px',
+              backgroundColor: '#f9fafb',
+              gap: '2px'
+            }}
+            aria-label="Repayments view mode"
+          >
+            <button
+              type="button"
+              onClick={() => onModeChange('simple')}
+              style={{
+                padding: '0.15rem 0.7rem',
+                borderRadius: '999px',
+                border: 'none',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                backgroundColor: mode === 'simple' ? '#2563eb' : 'transparent',
+                color: mode === 'simple' ? '#ffffff' : '#374151'
+              }}
+            >
+              Simple
+            </button>
+            <button
+              type="button"
+              onClick={() => onModeChange('advanced')}
+              style={{
+                padding: '0.15rem 0.7rem',
+                borderRadius: '999px',
+                border: 'none',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                backgroundColor:
+                  mode === 'advanced' ? '#2563eb' : 'transparent',
+                color: mode === 'advanced' ? '#ffffff' : '#374151'
+              }}
+            >
+              Advanced
+            </button>
+          </div>
+        </header>
         <form
           style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}
         >
@@ -56,24 +118,26 @@ export const RepaymentCalculator: React.FC = () => {
             min={50000}
             onChange={setAmount}
           />
-          <LabeledNumber
-            id="rate"
-            label="Interest rate (p.a.)"
-            suffix="%"
-            value={rate}
-            min={0}
-            step={0.1}
-            onChange={setRate}
-          />
-          <LabeledNumber
-            id="years"
-            label="Loan term (years)"
-            value={years}
-            min={1}
-            max={40}
-            step={1}
-            onChange={setYears}
-          />
+          <div className="loan-input-row-split">
+            <LabeledNumber
+              id="rate"
+              label="Interest rate"
+              suffix="%"
+              value={rate}
+              min={0}
+              step={0.1}
+              onChange={setRate}
+            />
+            <LabeledNumber
+              id="years"
+              label="Loan term (yrs)"
+              value={years}
+              min={1}
+              max={40}
+              step={1}
+              onChange={setYears}
+            />
+          </div>
           <div>
             <label htmlFor="frequency">Repayment frequency</label>
             <select
@@ -82,14 +146,38 @@ export const RepaymentCalculator: React.FC = () => {
               onChange={(e) =>
                 setFrequency(e.target.value as RepaymentFrequency)
               }
+              style={{
+                width: '100%',
+                padding: '0.4rem 0.75rem',
+                fontSize: '0.9rem',
+                borderRadius: '0.375rem',
+                border: '1px solid var(--control-border)',
+                backgroundColor: 'var(--control-bg)',
+                color: 'var(--text-main)'
+              }}
             >
               <option value="weekly">Weekly</option>
               <option value="fortnightly">Fortnightly</option>
               <option value="monthly">Monthly</option>
             </select>
           </div>
-          <fieldset>
-            <legend>Repayment type</legend>
+          <fieldset
+            style={{
+              margin: 0,
+              borderRadius: '0.375rem',
+              border: '1px solid var(--control-border)',
+              padding: '0.6rem 0.75rem'
+            }}
+          >
+            <legend
+              style={{
+                padding: '0 0.25rem',
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)'
+              }}
+            >
+              Repayment type
+            </legend>
             <label>
               <input
                 type="radio"
@@ -141,18 +229,13 @@ export const RepaymentCalculator: React.FC = () => {
             value={formatCurrency(result.summary.totalPaid)}
           />
           <SummaryCard
-            label="Payoff date"
+            label="Loan completed"
             value={String(payoffYear)}
           />
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
           <h3>Loan balance over time</h3>
-          <p style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-            The filled area shows your remaining loan split into
-            principal (amount owing) and interest still to be paid
-            over time.
-          </p>
           <BalanceChart schedule={result.schedule} />
         </div>
 
@@ -196,8 +279,27 @@ const LabeledNumber: React.FC<LabeledNumberProps> = ({
   return (
     <div>
       <label htmlFor={id}>{label}</label>
-      <div>
-        {prefix}
+      <div
+        style={{
+          position: 'relative',
+          display: 'inline-flex',
+          width: '100%'
+        }}
+      >
+        {prefix && (
+          <span
+            style={{
+              position: 'absolute',
+              left: '0.65rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.85rem',
+              color: '#6b7280'
+            }}
+          >
+            {prefix}
+          </span>
+        )}
         <input
           id={id}
           type="number"
@@ -206,9 +308,31 @@ const LabeledNumber: React.FC<LabeledNumberProps> = ({
           max={max}
           step={step}
           onChange={(e) => onChange(Number(e.target.value))}
-          style={{ width: '100%' }}
+          style={{
+            width: '100%',
+            padding: '0.4rem 0.75rem',
+            paddingLeft: prefix ? '1.6rem' : '0.75rem',
+            paddingRight: suffix ? '1.4rem' : '0.75rem',
+            fontSize: '0.9rem',
+            borderRadius: '0.375rem',
+            border: '1px solid #d1d5db',
+            boxSizing: 'border-box'
+          }}
         />
-        {suffix}
+        {suffix && (
+          <span
+            style={{
+              position: 'absolute',
+              right: '0.65rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.85rem',
+              color: '#6b7280'
+            }}
+          >
+            {suffix}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -271,7 +395,14 @@ const LabeledCurrency: React.FC<LabeledCurrencyProps> = ({
         inputMode="numeric"
         value={display}
         onChange={(e) => handleChange(e.target.value)}
-        style={{ width: '100%' }}
+        style={{
+          width: '100%',
+          padding: '0.4rem 0.75rem',
+          fontSize: '0.9rem',
+          borderRadius: '0.375rem',
+          border: '1px solid #d1d5db',
+          boxSizing: 'border-box'
+        }}
       />
     </div>
   );
@@ -287,11 +418,18 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ label, value }) => (
     className="summary-card"
     style={{
       borderRadius: '0.5rem',
-      border: '1px solid #e5e7eb',
-      padding: 0
+      border: '1px solid var(--border-subtle)'
     }}
   >
-    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{label}</div>
+    <div
+      style={{
+        fontSize: '0.8rem',
+        color: 'var(--text-muted)',
+        marginBottom: '0.15rem'
+      }}
+    >
+      {label}
+    </div>
     <div style={{ fontWeight: 600 }}>{value}</div>
   </div>
 );

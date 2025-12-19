@@ -13,6 +13,7 @@ export interface ExtraRepayment {
   effectiveDate: string;
   amount: number;
   recurring: boolean;
+  endDate?: string;
 }
 
 export interface OffsetConfig {
@@ -63,6 +64,21 @@ export interface AmortisationSummary {
 export interface AmortisationResult {
   summary: AmortisationSummary;
   schedule: PeriodRow[];
+}
+
+export type ExtraFrequency =
+  | 'oneOff'
+  | 'weekly'
+  | 'fortnightly'
+  | 'annual'
+  | 'customMonths';
+
+export interface ExtraRule {
+  startMonth: number;
+  amount: number;
+  frequency: ExtraFrequency;
+  intervalMonths?: number;
+  endMonth?: number;
 }
 
 function frequencyToPeriodsPerYear(frequency: RepaymentFrequency): number {
@@ -175,8 +191,12 @@ export function generateAmortisation(inputs: LoanInputs): AmortisationResult {
     if (extraRepayments && extraRepayments.length > 0) {
       for (const er of extraRepayments) {
         const erDate = new Date(er.effectiveDate);
+        const endDate = er.endDate ? new Date(er.endDate) : undefined;
+
         if (er.recurring) {
-          if (isSameOrAfter(currentDate, erDate)) {
+          const afterStart = isSameOrAfter(currentDate, erDate);
+          const beforeEnd = !endDate || currentDate <= endDate;
+          if (afterStart && beforeEnd) {
             extra += er.amount;
           }
         } else if (
@@ -262,6 +282,167 @@ export function generateAmortisation(inputs: LoanInputs): AmortisationResult {
   };
 }
 
+export interface ScenarioComparisonSummary {
+  baselineTotalInterest: number;
+  withExtrasTotalInterest: number;
+  interestSaved: number;
+  baselineTotalPaid: number;
+  withExtrasTotalPaid: number;
+  totalPaidSaved: number;
+  baselinePeriods: number;
+  withExtrasPeriods: number;
+  periodsSaved: number;
+  yearsSaved: number;
+  baselinePayoffYear: number;
+  withExtrasPayoffYear: number;
+}
+
+export interface ScenarioWithExtrasResult {
+  baseline: AmortisationResult;
+  withExtras: AmortisationResult;
+  comparison: ScenarioComparisonSummary;
+}
+
+export function generateScenarioWithExtras(
+  inputs: LoanInputs,
+  extraRules: ExtraRule[]
+): ScenarioWithExtrasResult {
+  const baseline = generateAmortisation(inputs);
+
+  if (!extraRules.length) {
+    const payoffYear = new Date(baseline.summary.payoffDate).getFullYear();
+    return {
+      baseline,
+      withExtras: baseline,
+      comparison: {
+        baselineTotalInterest: baseline.summary.totalInterest,
+        withExtrasTotalInterest: baseline.summary.totalInterest,
+        interestSaved: 0,
+        baselineTotalPaid: baseline.summary.totalPaid,
+        withExtrasTotalPaid: baseline.summary.totalPaid,
+        totalPaidSaved: 0,
+        baselinePeriods: baseline.schedule.length,
+        withExtrasPeriods: baseline.schedule.length,
+        periodsSaved: 0,
+        yearsSaved: 0,
+        baselinePayoffYear: payoffYear,
+        withExtrasPayoffYear: payoffYear
+      }
+    };
+  }
+
+  const startDate = new Date(inputs.startDate);
+  const periodsPerYear = frequencyToPeriodsPerYear(inputs.frequency);
+
+  const extras: ExtraRepayment[] = [];
+
+  for (const rule of extraRules) {
+    if (!rule.amount || rule.amount <= 0) continue;
+
+    const effectiveStart = new Date(startDate.getTime());
+    effectiveStart.setMonth(effectiveStart.getMonth() + rule.startMonth);
+    const effectiveDate = effectiveStart.toISOString().slice(0, 10);
+
+    let effectiveEndDate: string | undefined;
+    if (typeof rule.endMonth === 'number' && rule.endMonth >= 0) {
+      const effectiveEnd = new Date(startDate.getTime());
+      effectiveEnd.setMonth(effectiveEnd.getMonth() + rule.endMonth);
+      effectiveEndDate = effectiveEnd.toISOString().slice(0, 10);
+    }
+
+    if (rule.frequency === 'oneOff') {
+      extras.push({
+        effectiveDate,
+        amount: rule.amount,
+        recurring: false,
+        endDate: effectiveEndDate
+      });
+      continue;
+    }
+
+    let perPeriodAmount = rule.amount;
+
+    if (inputs.frequency === 'monthly') {
+      switch (rule.frequency) {
+        case 'weekly':
+          perPeriodAmount = (rule.amount * 52) / 12;
+          break;
+        case 'fortnightly':
+          perPeriodAmount = (rule.amount * 26) / 12;
+          break;
+        case 'annual':
+          perPeriodAmount = rule.amount / 12;
+          break;
+        case 'customMonths': {
+          const interval = rule.intervalMonths && rule.intervalMonths > 0
+            ? rule.intervalMonths
+            : 1;
+          perPeriodAmount = rule.amount / interval;
+          break;
+        }
+        default:
+          perPeriodAmount = rule.amount;
+      }
+    } else {
+      perPeriodAmount = rule.amount * (12 / periodsPerYear);
+    }
+
+    extras.push({
+      effectiveDate,
+      amount: perPeriodAmount,
+      recurring: true,
+      endDate: effectiveEndDate
+    });
+  }
+
+  const withExtras = extras.length
+    ? generateAmortisation({
+        ...inputs,
+        extraRepayments: extras
+      })
+    : baseline;
+
+  const baselineInterest = baseline.summary.totalInterest;
+  const extrasInterest = withExtras.summary.totalInterest;
+  const interestSaved = baselineInterest - extrasInterest;
+
+  const baselineTotalPaid = baseline.summary.totalPaid;
+  const extrasTotalPaid = withExtras.summary.totalPaid;
+  const totalPaidSaved = baselineTotalPaid - extrasTotalPaid;
+
+  const baselinePeriods = baseline.schedule.length;
+  const extrasPeriods = withExtras.schedule.length;
+  const periodsSaved = baselinePeriods - extrasPeriods;
+  const yearsSaved =
+    periodsSaved / frequencyToPeriodsPerYear(inputs.frequency);
+
+  const baselinePayoffYear = new Date(
+    baseline.summary.payoffDate
+  ).getFullYear();
+  const withExtrasPayoffYear = new Date(
+    withExtras.summary.payoffDate
+  ).getFullYear();
+
+  return {
+    baseline,
+    withExtras,
+    comparison: {
+      baselineTotalInterest: baselineInterest,
+      withExtrasTotalInterest: extrasInterest,
+      interestSaved,
+      baselineTotalPaid,
+      withExtrasTotalPaid: extrasTotalPaid,
+      totalPaidSaved,
+      baselinePeriods,
+      withExtrasPeriods: extrasPeriods,
+      periodsSaved,
+      yearsSaved,
+      baselinePayoffYear,
+      withExtrasPayoffYear
+    }
+  };
+}
+
 export interface IncomeInput {
   amountAnnual: number;
   shadingFactor: number;
@@ -292,6 +473,9 @@ export interface BorrowingCapacityResult {
   estimatedPurchasePrice: number;
   assessmentRate: number;
   limitingFactors: string[];
+   monthlyRepaymentAtAssessment: number;
+   assessedExpensesMonthly: number;
+   totalOtherDebt: number;
   capacityByRate: { rate: number; capacity: number }[];
 }
 
@@ -352,6 +536,7 @@ export function estimateBorrowingCapacity(
 
   const lvr = 1 - (depositPercent ?? 0.2);
   const estimatedPurchasePrice = lvr > 0 ? maxBorrowing / lvr : maxBorrowing;
+  const monthlyRepaymentAtAssessment = maxBorrowing * paymentFactor;
 
   const limitingFactors: string[] = [];
   if (availableForMortgage <= 0) {
@@ -386,6 +571,9 @@ export function estimateBorrowingCapacity(
     maxBorrowing,
     estimatedPurchasePrice,
     assessmentRate,
+    monthlyRepaymentAtAssessment,
+    assessedExpensesMonthly: expensesMonthly,
+    totalOtherDebt,
     limitingFactors,
     capacityByRate
   };

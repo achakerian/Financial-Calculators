@@ -39,24 +39,31 @@ export const RepaymentOverTimeChart: React.FC<ChartProps> = ({ schedule, height 
 
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
-      <AreaChart data={data}>
-        <XAxis dataKey="dateLabel" hide={data.length > 40} />
-        <YAxis tickFormatter={(v) => formatThousands(v)} />
+      <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 40, left: 48 }}>
+        <XAxis
+          dataKey="dateLabel"
+          hide={data.length > 40}
+          tick={{ fill: 'var(--text-main)' }}
+        />
+        <YAxis
+          tickFormatter={(v) => formatThousands(v)}
+          tick={{ fill: 'var(--text-main)' }}
+        />
         <Tooltip formatter={(value: number) => formatCurrency(value as number)} />
         <Area
           type="monotone"
           dataKey="principal"
           stackId="1"
-          stroke="#16a34a"
-          fill="#bbf7d0"
+          stroke="#60a5fa"
+          fill="rgba(37, 99, 235, 0.25)"
           name="Principal"
         />
         <Area
           type="monotone"
           dataKey="interest"
           stackId="1"
-          stroke="#f97316"
-          fill="#fed7aa"
+          stroke="#fb923c"
+          fill="rgba(249, 115, 22, 0.24)"
           name="Interest"
         />
       </AreaChart>
@@ -108,51 +115,66 @@ export const BalanceChart: React.FC<ChartProps> = ({ schedule, height, overlaySc
   const maxPrincipal = (schedule[0]?.openingBalance ?? 0) + 100000;
   const lastMonthIndex = data.length ? data[data.length - 1].monthIndex : 0;
   const maxMonth = lastMonthIndex + 12;
-  const tickStep = 96; // ~8 years if monthly
+
+  // Choose X-axis ticks by years rather than raw months
+  const maxYear = Math.ceil(maxMonth / 12);
+  const approxTickCount = 6;
+  const yearStep = Math.max(1, Math.round(maxYear / approxTickCount));
   const ticks: number[] = [];
-  for (let m = 0; m <= maxMonth; m += tickStep) {
-    ticks.push(m);
+  for (let year = 0; year <= maxYear; year += yearStep) {
+    ticks.push(year * 12);
   }
-  if (ticks.length === 0 || ticks[ticks.length - 1] !== maxMonth) {
-    ticks.push(maxMonth);
+  const finalYearMonth = maxYear * 12;
+  if (!ticks.includes(finalYearMonth)) {
+    ticks.push(finalYearMonth);
   }
 
   const chartHeight = height ?? 250;
 
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
-      <AreaChart data={data}>
+      <AreaChart data={data} margin={{ top: 8, right: 16, bottom: 40, left: 48 }}>
         <XAxis
           dataKey="monthIndex"
           type="number"
           domain={[0, maxMonth]}
-          tickFormatter={(v) => `${v}`}
+          tickFormatter={(v) => `${Math.round(v / 12)}`}
           ticks={ticks}
+          tick={{ fill: 'var(--text-main)' }}
           label={{
-            value: 'Time (months)',
-            position: 'insideBottomRight',
-            offset: -5
+            value: 'Time (years)',
+            position: 'bottom',
+            offset: 10,
+            style: { fill: 'var(--text-main)' }
           }}
         />
         <YAxis
           tickFormatter={(v) => formatThousands(v)}
           domain={[0, maxPrincipal]}
+          tick={{ fill: 'var(--text-main)' }}
+          label={{
+            value: 'Balance ($)',
+            angle: -90,
+            position: 'left',
+            offset: 0,
+            style: { fill: 'var(--text-main)' }
+          }}
         />
         <Tooltip content={<BalanceTooltip />} />
         <Area
           type="monotone"
           dataKey="principalArea"
           name="Principal remaining"
-          stroke="#2563eb"
-          fill="#bfdbfe"
+          stroke="#60a5fa"
+          fill="rgba(37, 99, 235, 0.25)"
           stackId="1"
         />
         <Area
           type="monotone"
           dataKey="interestArea"
           name="Interest share of repayments"
-          stroke="#f97316"
-          fill="#fed7aa"
+          stroke="#fb923c"
+          fill="rgba(249, 115, 22, 0.24)"
           stackId="1"
         />
         {data.some((d) => d.baselinePrincipalRemaining !== undefined) && (
@@ -197,7 +219,9 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
   const months = datum.monthIndex ?? 0;
   const years = Math.floor(months / 12);
   const remMonths = months % 12;
-  const heading = `${years} years ${remMonths} months`;
+  const heading = years
+    ? `${years} years ${remMonths} months`
+    : `${remMonths} months`;
 
   const interestPct = repayment > 0 ? (interest / repayment) * 100 : 0;
   const principalPct = repayment > 0 ? (principal / repayment) * 100 : 0;
@@ -205,23 +229,52 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderRadius: 4,
-        padding: '0.5rem 0.75rem',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-        fontSize: '0.85rem'
+        background: '#f9fafb',
+        borderRadius: 8,
+        padding: '0.6rem 0.9rem',
+        boxShadow: '0 6px 18px rgba(15,23,42,0.25)',
+        fontSize: '0.85rem',
+        maxWidth: 260
       }}
     >
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>{heading}</div>
-      <div style={{ color: '#111827' }}>
-        Repayment amount: {formatCurrency(repayment)} (100%)
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: 6,
+          color: '#111827'
+        }}
+      >
+        {heading}
       </div>
-      <div style={{ color: '#f97316' }}>
-        Interest: {formatCurrency(interest)} ({Math.round(interestPct)}%)
+
+      <div style={{ marginBottom: 6 }}>
+        <div
+          style={{
+            fontSize: '0.8rem',
+            color: '#6b7280',
+            marginBottom: 2
+          }}
+        >
+          Repayment amount
+        </div>
+        <div style={{ fontWeight: 600, color: '#111827' }}>
+          {formatCurrency(repayment)} (100%)
+        </div>
       </div>
-      <div style={{ color: '#2563eb' }}>
-        Principal reduction: {formatCurrency(principal)} (
-        {Math.round(principalPct)}%)
+
+      <div style={{ marginBottom: 2, color: '#fb923c' }}>
+        Interest:{' '}
+        <span style={{ fontWeight: 600 }}>
+          {formatCurrency(interest)}
+        </span>{' '}
+        <span style={{ color: '#9ca3af' }}>({Math.round(interestPct)}%)</span>
+      </div>
+      <div style={{ color: '#60a5fa' }}>
+        Principal reduction:{' '}
+        <span style={{ fontWeight: 600 }}>
+          {formatCurrency(principal)}
+        </span>{' '}
+        <span style={{ color: '#9ca3af' }}>({Math.round(principalPct)}%)</span>
       </div>
     </div>
   );
@@ -244,9 +297,16 @@ export const CumulativeInterestChart: React.FC<ChartProps> = ({ schedule }) => {
 
   return (
     <ResponsiveContainer width="100%" height={250}>
-      <LineChart data={data}>
-        <XAxis dataKey="dateLabel" hide={data.length > 40} />
-        <YAxis tickFormatter={(v) => formatThousands(v)} />
+      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 24, left: 48 }}>
+        <XAxis
+          dataKey="dateLabel"
+          hide={data.length > 40}
+          tick={{ fill: 'var(--text-main)' }}
+        />
+        <YAxis
+          tickFormatter={(v) => formatThousands(v)}
+          tick={{ fill: 'var(--text-main)' }}
+        />
         <Tooltip formatter={(v: number) => formatCurrency(v)} />
         <Legend />
         <Line
