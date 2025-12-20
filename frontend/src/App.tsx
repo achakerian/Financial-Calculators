@@ -63,7 +63,7 @@ export const App: React.FC = () => {
                 onClick={() => setTab('capacity')}
               />
               <NavPill
-                label="PayCalculator"
+                label="Pay & Tax Calculator"
                 active={tab === 'paycalc'}
                 onClick={() => setTab('paycalc')}
               />
@@ -173,7 +173,7 @@ export const App: React.FC = () => {
                 }}
               />
               <NavItem
-                label="PayCalculator"
+                label="Pay & Tax Calculator"
                 active={tab === 'paycalc'}
                 onClick={() => {
                   setTab('paycalc');

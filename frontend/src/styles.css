@@ -184,6 +184,30 @@ body {
   gap: 0.5rem;
 }
 
+.cash-breakdown-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.cash-breakdown-chart {
+  flex: 0 0 50%;
+}
+
+.cash-breakdown-legend {
+  flex: 0 0 50%;
+  font-size: 0.85rem;
+  transform: translate(-10%, 30%);
+}
+
+.pay-results-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
 @media (min-width: 900px) {
   .two-column-layout {
     display: grid;
@@ -224,10 +248,58 @@ body {
   .summary-row {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
+
+  .pay-results-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 899px) {
   .page-heading {
     display: none;
+  }
+}
+
+/* Mobile-first refinements */
+@media (max-width: 600px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+
+  .two-column-layout {
+    gap: 1rem;
+  }
+
+  .loan-input-grid,
+  .loan-input-row-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pay-results-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cash-breakdown-layout {
+    flex-direction: column;
+  }
+
+  .cash-breakdown-chart {
+    flex: 0 0 auto;
+  }
+
+  .cash-breakdown-legend {
+    flex: 0 0 auto;
+    transform: none;
+    margin-top: 0.75rem;
   }
 }

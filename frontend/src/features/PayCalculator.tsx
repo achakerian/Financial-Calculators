@@ -4,79 +4,113 @@ import {
   PieChart,
   Pie,
   Cell,
-  Tooltip
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis
 } from 'recharts';
+import type { TooltipProps } from 'recharts';
 
-type PayFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'annual';
-type TaxResidency = 'resident' | 'foreign' | 'whm';
-type MedicareOption = 'full' | 'reduced' | 'exempt';
-type SuperMode = 'ontop' | 'included';
+import {
+  buildPayModel,
+  FREQUENCY_LABEL,
+  PER_FACTOR,
+  type PayModelInputs
+} from './payModel';
+import type {
+  PayFrequency,
+  TaxResidency,
+  MedicareOption,
+  SuperMode
+} from './payTypes';
+import {
+  createTaxCalculators,
+  DEFAULT_TAX_YEAR_ID,
+  TAX_YEAR_CONFIGS,
+  TAX_YEAR_MAP,
+  type TaxYearId
+} from './taxConfig';
 
 export const PayCalculator: React.FC = () => {
   const [viewMode, setViewMode] = useState<'simple' | 'advanced'>('simple');
   const [grossAnnual, setGrossAnnual] = useState<number>(90000);
+  const [grossFytd, setGrossFytd] = useState<number | null>(null);
   const [frequency, setFrequency] = useState<PayFrequency>('weekly');
   const [residency, setResidency] = useState<TaxResidency>('resident');
   const [claimTaxFree, setClaimTaxFree] = useState<boolean>(true);
   const [medicare, setMedicare] = useState<MedicareOption>('full');
   const [hasHelp, setHasHelp] = useState<boolean>(false);
   const [superMode, setSuperMode] = useState<SuperMode>('ontop');
-  const [superRate, setSuperRate] = useState<number>(11.5); // %
+  const [superRate, setSuperRate] = useState<number>(12); // % default near current SG
   const [salarySacrifice, setSalarySacrifice] = useState<number>(0);
-
-  const effectiveSalarySacrifice =
-    viewMode === 'advanced' ? salarySacrifice : 0;
-
-  const taxableIncome = Math.max(grossAnnual - effectiveSalarySacrifice, 0);
-
-  const annualTax = useMemo(
-    () => calculateAnnualTax(taxableIncome, residency, claimTaxFree),
-    [taxableIncome, residency, claimTaxFree]
+  const [taxYearId, setTaxYearId] = useState<TaxYearId>(DEFAULT_TAX_YEAR_ID);
+  const taxYearConfig = TAX_YEAR_MAP[taxYearId];
+  const taxCalcs = useMemo(
+    () => createTaxCalculators(taxYearConfig),
+    [taxYearConfig]
   );
 
-  const medicareAmount = useMemo(
-    () => calculateMedicare(taxableIncome, medicare),
-    [taxableIncome, medicare]
+  // Enforce a minimum Superannuation rate of 12% for
+  // the 2025–26 financial year to reflect the higher
+  // Superannuation Guarantee rate, while allowing lower
+  // defaults for earlier years.
+  const effectiveSuperRate =
+    taxYearId === '2025-26' ? Math.max(superRate, 12) : superRate;
+
+  const model = useMemo(
+    () =>
+      buildPayModel({
+        viewMode,
+        grossAnnual,
+        grossFytd,
+        frequency,
+        residency,
+        claimTaxFree,
+        medicare,
+        hasHelp,
+        superMode,
+        superRate: effectiveSuperRate,
+        salarySacrifice
+      } as PayModelInputs, {
+        calculateAnnualTax: taxCalcs.calculateAnnualTax,
+        calculateMedicare: taxCalcs.calculateMedicare,
+        calculateHelpRepayments: taxCalcs.calculateHelpRepayments,
+        splitGrossIntoSalaryAndSuper
+      }),
+    [
+      viewMode,
+      grossAnnual,
+      grossFytd,
+      frequency,
+      residency,
+      claimTaxFree,
+      medicare,
+      hasHelp,
+      superMode,
+      effectiveSuperRate,
+      salarySacrifice,
+      taxCalcs
+    ]
   );
 
-  const helpAmount = useMemo(
-    () => (hasHelp ? calculateHelpRepayments(taxableIncome) : 0),
-    [taxableIncome, hasHelp]
-  );
+  const {
+    useFytd,
+    financialYearProgress,
+    effectiveGrossAnnual,
+    effectiveSalarySacrifice,
+    taxableIncome,
+    annualTax,
+    medicareAmount,
+    helpAmount,
+    totalTax,
+    netAnnual,
+    employerSuper,
+    salaryPortionAnnual,
+    packageTotal
+  } = model;
 
-  const totalTax = annualTax + medicareAmount + helpAmount;
-
-  const netAnnual = Math.max(
-    grossAnnual - totalTax - effectiveSalarySacrifice,
-    0
-  );
-
-  const superRateDecimal = Math.max(superRate, 0) / 100;
-  const { employerSuper, salaryPortionAnnual } =
-    superMode === 'ontop'
-      ? {
-          employerSuper: grossAnnual * superRateDecimal,
-          salaryPortionAnnual: grossAnnual
-        }
-      : splitGrossIntoSalaryAndSuper(grossAnnual, superRateDecimal);
-
-  const packageTotal = salaryPortionAnnual + employerSuper;
-
-  const frequencyLabel: Record<PayFrequency, string> = {
-    weekly: 'Weekly',
-    fortnightly: 'Fortnightly',
-    monthly: 'Monthly',
-    annual: 'Annual'
-  };
-
-  const perFactor: Record<PayFrequency, number> = {
-    weekly: 52,
-    fortnightly: 26,
-    monthly: 12,
-    annual: 1
-  };
-
-  const divisor = perFactor[frequency];
+  const divisor = PER_FACTOR[frequency];
   const netPerPeriod = netAnnual / divisor;
   const taxPerPeriod = totalTax / divisor;
   const superPerPeriod = employerSuper / divisor;
@@ -89,10 +123,27 @@ export const PayCalculator: React.FC = () => {
   ];
 
   const donutDataBase = [
-    { key: 'Net pay', value: netAnnual, color: '#60a5fa' },
-    { key: 'Income tax', value: annualTax, color: '#fb923c' },
-    { key: 'Medicare levy', value: medicareAmount, color: '#f97316' },
-    { key: 'Super', value: employerSuper, color: '#22c55e' }
+    // Soft fills aligned with repayment charts
+    {
+      key: 'Net pay',
+      value: netAnnual,
+      color: 'rgba(37, 99, 235, 0.25)' // blue
+    },
+    {
+      key: 'Income tax',
+      value: annualTax,
+      color: 'rgba(249, 115, 22, 0.28)' // orange
+    },
+    {
+      key: 'Medicare levy',
+      value: medicareAmount,
+      color: 'rgba(249, 115, 22, 0.45)' // slightly deeper orange
+    },
+    {
+      key: 'Super',
+      value: employerSuper,
+      color: 'rgba(34, 197, 94, 0.3)' // green
+    }
   ];
 
   const donutData =
@@ -105,6 +156,94 @@ export const PayCalculator: React.FC = () => {
           donutDataBase[3]
         ]
       : donutDataBase;
+
+  const taxBandSegments = taxCalcs.calculateTaxBreakdown(
+    taxableIncome,
+    residency,
+    claimTaxFree
+  );
+
+  const formatBandShort = (value: number) => {
+    if (value >= 1000) {
+      const thousands = Math.round(value / 1000);
+      return `$${thousands}k`;
+    }
+    return currencyFormatter0.format(value);
+  };
+
+  const bandCapacities = taxBandSegments.map((seg) => {
+    const upperRaw =
+      seg.bandEnd === null ? taxableIncome : seg.bandEnd;
+    const upper = Math.min(upperRaw, taxableIncome);
+    return Math.max(upper - seg.bandStart, 0);
+  });
+  const maxBandCapacity =
+    bandCapacities.reduce((max, c) => (c > max ? c : max), 0) || 1;
+
+  const taxBandChartData = taxBandSegments.map((seg, index) => {
+    const upperBoundRaw =
+      seg.bandEnd === null
+        ? taxableIncome
+        : Math.min(seg.bandEnd, taxableIncome);
+    const upperBound = Math.max(upperBoundRaw, seg.bandStart);
+
+    const label =
+      seg.bandEnd === null
+        ? `${currencyFormatter0.format(seg.bandStart)}+`
+        : `${currencyFormatter0.format(seg.bandStart)} – ${currencyFormatter0.format(
+            upperBound
+          )}`;
+
+    const shortLabel =
+      seg.bandEnd === null
+        ? `${formatBandShort(seg.bandStart)}+`
+        : `${formatBandShort(seg.bandStart)}–${formatBandShort(upperBound)}`;
+
+    const taxAmount = seg.taxInBand;
+    const incomeInBand = seg.incomeInBand;
+
+    const shareOfTaxable =
+      taxableIncome > 0 ? incomeInBand / taxableIncome : 0;
+    const shareOfGross =
+      effectiveGrossAnnual > 0 ? incomeInBand / effectiveGrossAnnual : 0;
+
+    const bandCapacity = bandCapacities[index];
+    const capacityPct = (bandCapacity / maxBandCapacity) * 100;
+    const bandFill =
+      bandCapacity > 0 ? Math.min(incomeInBand / bandCapacity, 1) : 0;
+    const usedPct = capacityPct * bandFill;
+
+    const medicareInBand = medicareAmount * shareOfTaxable;
+    const helpInBand = helpAmount * shareOfTaxable;
+    const superInBand = employerSuper * shareOfGross;
+
+    const aggDeductionsInBand = medicareInBand + helpInBand + superInBand;
+
+    const cashNetInBand = Math.max(
+      incomeInBand - (taxAmount + aggDeductionsInBand),
+      0
+    );
+
+    const totalForShare = cashNetInBand + aggDeductionsInBand + taxAmount || 1;
+    const netShare = (cashNetInBand / totalForShare) * usedPct;
+    const aggDedShare = (aggDeductionsInBand / totalForShare) * usedPct;
+    const taxShare = (taxAmount / totalForShare) * usedPct;
+
+    return {
+      id: seg.id,
+      label,
+      shortLabel,
+      netShare,
+      aggDedShare,
+      taxShare,
+      netAmount: cashNetInBand,
+      aggDeductionsAmount: aggDeductionsInBand,
+      deductionsAmount: aggDeductionsInBand + taxAmount,
+      taxAmount,
+      incomeInBand,
+      ratePct: seg.rate * 100
+    };
+  }).sort((a, b) => b.ratePct - a.ratePct);
 
   return (
     <div className="two-column-layout">
@@ -127,8 +266,8 @@ export const PayCalculator: React.FC = () => {
               color: 'var(--text-muted)'
             }}
           >
-            Estimate Australian take-home pay, tax and super from your gross
-            salary.
+            Estimate Australian take-home pay, tax and Superannuation from
+            your gross salary.
           </p>
         </header>
 
@@ -136,64 +275,80 @@ export const PayCalculator: React.FC = () => {
           style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}
           aria-label="Pay & Tax assumptions"
         >
-          <div>
+          <div
+            style={{ marginBottom: '0.5rem' }}
+          >
             <label>Pay frequency</label>
             <div
               style={{
-                display: 'inline-flex',
-                borderRadius: '999px',
-                border: '1px solid var(--control-border)',
-                padding: '2px',
-                backgroundColor: 'var(--control-bg)',
-                gap: '2px'
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.35rem',
+                marginTop: '0.25rem'
               }}
             >
-              {(['weekly', 'fortnightly', 'monthly', 'annual'] as PayFrequency[]).map(
+              {(['weekly', 'fortnightly', 'monthly', 'annual', 'fytd'] as PayFrequency[]).map(
                 (freq) => (
                   <button
                     key={freq}
                     type="button"
                     onClick={() => setFrequency(freq)}
                     style={{
-                      padding: '0.15rem 0.7rem',
+                      padding: '0.18rem 0.75rem',
                       borderRadius: '999px',
-                      border: 'none',
+                      border: '1px solid var(--control-border)',
                       fontSize: '0.8rem',
                       cursor: 'pointer',
                       backgroundColor:
-                        frequency === freq ? '#2563eb' : 'transparent',
+                        frequency === freq ? '#2563eb' : 'var(--control-bg)',
                       color:
                         frequency === freq
                           ? '#ffffff'
                           : 'var(--text-main)'
                     }}
                   >
-                    {frequencyLabel[freq]}
+                    {FREQUENCY_LABEL[freq]}
                   </button>
                 )
               )}
             </div>
           </div>
 
-          {(() => {
-            const unitLabel =
-              frequency === 'annual'
-                ? 'annual'
-                : frequencyLabel[frequency].toLowerCase();
-            const label = `Gross income (${unitLabel})`;
-            const factor = frequency === 'annual' ? 1 : divisor;
-            const displayValue = grossAnnual / factor;
-            return (
-              <LabeledCurrencyPC
-                id="pc-gross-income"
-                label={label}
-                varSymbol="G"
-                value={displayValue}
-                min={0}
-                onChange={(val) => setGrossAnnual(val * factor)}
-              />
-            );
-          })()}
+          <div
+            style={{ marginBottom: '0.75rem' }}
+          >
+            {(() => {
+              const unitLabel =
+                frequency === 'annual'
+                  ? 'annual'
+                  : frequency === 'fytd'
+                  ? 'FYTD'
+                  : FREQUENCY_LABEL[frequency].toLowerCase();
+              const label = useFytd
+                ? 'Gross income (FYTD)'
+                : `Gross income (${unitLabel})`;
+              const factor = frequency === 'annual' ? 1 : divisor;
+              const displayValue = useFytd
+                ? grossFytd ?? grossAnnual * financialYearProgress
+                : grossAnnual / factor;
+              return (
+                <LabeledCurrencyPC
+                  id="pc-gross-income"
+                  label={label}
+                  varSymbol="G"
+                  value={displayValue}
+                  min={0}
+                  onChange={(val) => {
+                    if (useFytd) {
+                      setGrossFytd(val);
+                    } else {
+                      setGrossAnnual(val * factor);
+                    }
+                  }}
+                />
+              );
+            })()}
+          </div>
 
           <div
             style={{
@@ -293,6 +448,8 @@ export const PayCalculator: React.FC = () => {
                 <label htmlFor="pay-year">Financial year</label>
                 <select
                   id="pay-year"
+                  value={taxYearId}
+                  onChange={(e) => setTaxYearId(e.target.value as TaxYearId)}
                   style={{
                     width: '100%',
                     padding: '0.4rem 0.75rem',
@@ -302,10 +459,12 @@ export const PayCalculator: React.FC = () => {
                     backgroundColor: 'var(--control-bg)',
                     color: 'var(--text-main)'
                   }}
-                  defaultValue="2024-25"
                 >
-                  <option value="2024-25">2024–25 (current)</option>
-                  <option value="2023-24">2023–24</option>
+                  {TAX_YEAR_CONFIGS.map((config) => (
+                    <option key={config.id} value={config.id}>
+                      {config.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -388,7 +547,7 @@ export const PayCalculator: React.FC = () => {
               </div>
 
               <div>
-                <label>Super treatment</label>
+                <label>Superannuation treatment</label>
                 <div
                   style={{
                     display: 'inline-flex',
@@ -416,7 +575,7 @@ export const PayCalculator: React.FC = () => {
                           : 'var(--text-main)'
                     }}
                   >
-                    + Super on top
+                    + Superannuation on top
                   </button>
                   <button
                     type="button"
@@ -442,7 +601,7 @@ export const PayCalculator: React.FC = () => {
 
               <LabeledNumberPC
                 id="pc-super-rate"
-                label="Super rate"
+                label="Superannuation rate"
                 varSymbol="s"
                 suffix="%"
                 value={superRate}
@@ -477,7 +636,7 @@ export const PayCalculator: React.FC = () => {
         >
           <SummaryCardPC
             label="Gross income (annual)"
-            value={currencyFormatter0.format(grossAnnual)}
+            value={currencyFormatter0.format(effectiveGrossAnnual)}
           />
           <SummaryCardPC
             label="Net pay (annual)"
@@ -488,21 +647,13 @@ export const PayCalculator: React.FC = () => {
             value={currencyFormatter0.format(totalTax)}
           />
           <SummaryCardPC
-            label="Employer super (annual)"
+            label="Employer Superannuation (annual)"
             value={currencyFormatter0.format(employerSuper)}
           />
         </div>
 
         {/* Pay summary grid (all frequencies) + donut chart */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
-            gap: '1rem',
-            alignItems: 'stretch',
-            marginBottom: '1rem'
-          }}
-        >
+        <div className="pay-results-grid">
           <div
             style={{
               borderRadius: '0.75rem',
@@ -525,7 +676,7 @@ export const PayCalculator: React.FC = () => {
             >
               <div></div>
               {freqOrder.map((f) => (
-                <div
+              <div
                   key={f}
                   style={{
                     textAlign: 'right',
@@ -533,26 +684,26 @@ export const PayCalculator: React.FC = () => {
                     color: 'var(--text-muted)'
                   }}
                 >
-                  {frequencyLabel[f]}
+                  {FREQUENCY_LABEL[f]}
                 </div>
               ))}
             </div>
 
             <PaySummaryRow
-              label="Income (gross)"
-              values={freqOrder.map((f) => grossAnnual / perFactor[f])}
+              label="Gross"
+              values={freqOrder.map((f) => effectiveGrossAnnual / PER_FACTOR[f])}
             />
             <PaySummaryRow
-              label="Income (net)"
-              values={freqOrder.map((f) => netAnnual / perFactor[f])}
+              label="Net"
+              values={freqOrder.map((f) => netAnnual / PER_FACTOR[f])}
             />
             <PaySummaryRow
               label="Superannuation"
-              values={freqOrder.map((f) => employerSuper / perFactor[f])}
+              values={freqOrder.map((f) => employerSuper / PER_FACTOR[f])}
             />
             <PaySummaryRow
               label="Tax"
-              values={freqOrder.map((f) => totalTax / perFactor[f])}
+              values={freqOrder.map((f) => totalTax / PER_FACTOR[f])}
               isNegative
             />
           </div>
@@ -567,16 +718,10 @@ export const PayCalculator: React.FC = () => {
             <div style={{ fontWeight: 600, marginBottom: 4 }}>
               Cash Breakdown
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'stretch',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ flex: '0 0 50%' }}>
+            <div className="cash-breakdown-layout">
+              <div className="cash-breakdown-chart">
                 <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
+                    <PieChart>
                     <Pie
                       data={donutData}
                       dataKey="value"
@@ -589,23 +734,12 @@ export const PayCalculator: React.FC = () => {
                         <Cell key={entry.key} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip
-                      formatter={(value: number, name: string) => [
-                        currencyFormatter0.format(value as number),
-                        name
-                      ]}
-                    />
+                    <Tooltip content={<CashBreakdownTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
               {/* Persistent breakdown for each part of the pie */}
-              <div
-                style={{
-                  flex: '0 0 50%',
-                  fontSize: '0.85rem',
-                  transform: 'translate(-10%, 30%)'
-                }}
-              >
+              <div className="cash-breakdown-legend">
                 {(() => {
                   const totalCash =
                     netAnnual +
@@ -642,7 +776,7 @@ export const PayCalculator: React.FC = () => {
                         />
                       )}
                       <DonutBreakdownRow
-                        label="Super"
+                        label="Superannuation"
                         value={employerSuper}
                         total={totalCash}
                         color="#22c55e"
@@ -654,57 +788,82 @@ export const PayCalculator: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div
+          style={{
+            borderRadius: '0.75rem',
+            border: '1px solid var(--border-subtle)',
+            padding: '0.9rem 1rem',
+            marginBottom: '1rem'
+          }}
+        >
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+            Tax by threshold
+          </div>
+          {taxBandChartData.length === 0 ? (
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)'
+              }}
+            >
+              No income tax is payable at the current taxable income.
+            </div>
+          ) : (
+            <div style={{ width: '100%', height: 240 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={taxBandChartData}
+                  barCategoryGap={4}
+                  margin={{ top: 8, right: 8, bottom: 8, left: 0 }}
+                >
+                  <XAxis type="number" hide domain={[0, 100]} />
+                  <YAxis
+                    type="category"
+                    dataKey="shortLabel"
+                    tick={{ fontSize: 10, angle: -20, textAnchor: 'end' }}
+                    width={60}
+                  />
+                  <Tooltip
+                    content={<TaxBandTooltip />}
+                    cursor={{ fill: 'rgba(148, 163, 184, 0.12)' }}
+                  />
+                  <Bar
+                    dataKey="netShare"
+                    stackId="band"
+                    // Match repayment principal blue: solid stroke with soft fill
+                    fill="rgba(37, 99, 235, 0.25)"
+                    stroke="#60a5fa"
+                    name="Net"
+                    label={renderNetLabel}
+                  />
+                  <Bar
+                    dataKey="aggDedShare"
+                    stackId="band"
+                    // Match interest / cash-breakdown orange family
+                    fill="rgba(249, 115, 22, 0.28)"
+                    stroke="#fb923c"
+                    name="Other deductions"
+                    label={renderAggDedLabel}
+                  />
+                  <Bar
+                    dataKey="taxShare"
+                    stackId="band"
+                    // Slightly deeper red for tax, but same soft style
+                    fill="rgba(220, 38, 38, 0.3)"
+                    stroke="#b91c1c"
+                    name="Tax"
+                    label={renderTaxLabel}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
-};
-
-// Simple Australian resident tax approximation, similar to BorrowingCapacity.
-const calculateAnnualTax = (
-  taxableIncome: number,
-  residency: TaxResidency,
-  claimTaxFree: boolean
-): number => {
-  if (taxableIncome <= 0) return 0;
-
-  if (residency !== 'resident') {
-    // Simple non-resident: no tax-free threshold, flat bands.
-    if (taxableIncome <= 120000) return taxableIncome * 0.32;
-    if (taxableIncome <= 180000) return 38400 + (taxableIncome - 120000) * 0.37;
-    return 60600 + (taxableIncome - 180000) * 0.45;
-  }
-
-  const base = taxableIncome;
-
-  // Approx 2024–25 resident rates. If no tax-free threshold, treat first
-  // 18,200 as taxable at lowest marginal rate.
-  const thresholdOffset = claimTaxFree ? 18200 : 0;
-
-  if (base <= 18200) return 0;
-  if (base <= 45000) return (base - thresholdOffset) * 0.19;
-  if (base <= 120000) return 5092 + (base - 45000) * 0.325;
-  if (base <= 180000) return 29467 + (base - 120000) * 0.37;
-  return 51667 + (base - 180000) * 0.45;
-};
-
-const calculateMedicare = (
-  taxableIncome: number,
-  option: MedicareOption
-): number => {
-  if (option === 'exempt' || taxableIncome <= 0) return 0;
-  if (option === 'reduced') return taxableIncome * 0.01;
-  return taxableIncome * 0.02;
-};
-
-const calculateHelpRepayments = (taxableIncome: number): number => {
-  if (taxableIncome < 54000) return 0;
-  if (taxableIncome < 64000) return taxableIncome * 0.01;
-  if (taxableIncome < 75000) return taxableIncome * 0.02;
-  if (taxableIncome < 86000) return taxableIncome * 0.03;
-  if (taxableIncome < 97000) return taxableIncome * 0.04;
-  if (taxableIncome < 108000) return taxableIncome * 0.05;
-  if (taxableIncome < 119000) return taxableIncome * 0.06;
-  return taxableIncome * 0.07;
 };
 
 const splitGrossIntoSalaryAndSuper = (
@@ -724,6 +883,166 @@ const currencyFormatter0 = new Intl.NumberFormat('en-AU', {
   currency: 'AUD',
   maximumFractionDigits: 0
 });
+
+const makeBandLabelRenderer = (field: string, color: string) =>
+  (props: any) => {
+    const { x, y, width, height, payload } = props;
+    const amount = payload?.[field];
+    if (!amount || height < 12 || width < 24) return null;
+
+    const cx = x + width / 2;
+    const cy = y + height / 2;
+
+    return (
+      <text
+        x={cx}
+        y={cy}
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{
+          fontSize: 10,
+          fill: color
+        }}
+      >
+        {currencyFormatter0.format(amount as number)}
+      </text>
+    );
+  };
+
+const renderNetLabel = makeBandLabelRenderer('netAmount', '#1d4ed8');
+const renderAggDedLabel = makeBandLabelRenderer(
+  'aggDeductionsAmount',
+  '#92400e'
+);
+const renderTaxLabel = makeBandLabelRenderer('taxAmount', '#7f1d1d');
+
+const CashBreakdownTooltip: React.FC<TooltipProps<number, string>> = ({
+  active,
+  payload
+}) => {
+  if (!active || !payload || !payload.length) return null;
+  const item = payload[0];
+  const label = item.name as string;
+  const value = item.value as number;
+  const percent = (item.payload as any)?.percent as number | undefined;
+
+  const pctText =
+    percent !== undefined
+      ? `${(percent * 100).toFixed(0)}%`
+      : undefined;
+
+  return (
+    <div
+      style={{
+        background: '#f9fafb',
+        borderRadius: 8,
+        padding: '0.6rem 0.9rem',
+        boxShadow: '0 6px 18px rgba(15,23,42,0.25)',
+        fontSize: '0.85rem',
+        maxWidth: 260
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: 4,
+          color: '#111827'
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          color: '#111827'
+        }}
+      >
+        <span>{currencyFormatter0.format(value)}</span>
+        {pctText && (
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            {pctText}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TaxBandTooltip: React.FC<TooltipProps<number, string>> = ({
+  active,
+  payload
+}) => {
+  if (!active || !payload || !payload.length) return null;
+  const band = payload[0].payload as any;
+
+  const rateText = `${band.ratePct.toFixed(1)}% tax`;
+  const taxText = currencyFormatter0.format(band.taxAmount as number);
+  const netText = currencyFormatter0.format(band.netAmount as number);
+  const aggText = currencyFormatter0.format(
+    band.aggDeductionsAmount as number
+  );
+  const deductionsText = currencyFormatter0.format(
+    band.deductionsAmount as number
+  );
+
+  return (
+    <div
+      style={{
+        background: '#f9fafb',
+        borderRadius: 8,
+        padding: '0.6rem 0.9rem',
+        boxShadow: '0 6px 18px rgba(15,23,42,0.25)',
+        fontSize: '0.85rem',
+        maxWidth: 260
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: 6,
+          color: '#111827'
+        }}
+      >
+        {band.label}
+      </div>
+      <div
+        style={{
+          fontSize: '0.8rem',
+          color: '#1d4ed8',
+          marginBottom: 2
+        }}
+      >
+        Net in this band: {netText}
+      </div>
+      <div
+        style={{
+          fontSize: '0.8rem',
+          color: '#b91c1c'
+        }}
+      >
+        {rateText} : {taxText}
+      </div>
+      <div
+        style={{
+          fontSize: '0.8rem',
+          color: '#f97316'
+        }}
+      >
+        Other deductions: {aggText}
+      </div>
+      <div
+        style={{
+          fontSize: '0.8rem',
+          color: '#7f1d1d'
+        }}
+      >
+        Total deductions (tax + other): {deductionsText}
+      </div>
+    </div>
+  );
+};
 
 interface BreakdownRowProps {
   label: string;
@@ -803,7 +1122,15 @@ const PaySummaryRow: React.FC<PaySummaryRowProps> = ({
         columnGap: '0.75rem'
       }}
     >
-      <div>{label}</div>
+      <div
+        style={{
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}
+      >
+        {label}
+      </div>
       {values.map((v, index) => (
         <div
           key={index}
