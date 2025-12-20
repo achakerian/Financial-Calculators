@@ -3,8 +3,9 @@ import { RepaymentCalculator } from './features/RepaymentCalculator';
 import { AdvancedSimulator } from './features/AdvancedSimulator';
 import { BorrowingCapacity } from './features/BorrowingCapacity';
 import { PayCalculator } from './features/PayCalculator';
+import { SuperContributions } from './features/SuperContributions';
 
-type TabId = 'repayment' | 'capacity' | 'paycalc';
+type TabId = 'repayment' | 'capacity' | 'paycalc' | 'super';
 
 export const App: React.FC = () => {
   const [tab, setTab] = useState<TabId>('repayment');
@@ -18,7 +19,8 @@ export const App: React.FC = () => {
   const pageLabel: Record<TabId, string> = {
     repayment: repaymentView === 'simple' ? 'Repayments' : 'Repayments (adv)',
     capacity: 'Borrowing Capacity',
-    paycalc: 'Pay & Tax Calculator'
+    paycalc: 'Pay & Tax Calculator',
+    super: 'Super Contributions'
   };
 
   return (
@@ -33,13 +35,7 @@ export const App: React.FC = () => {
     >
       <header className="app-header">
         <div className="header-title">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem'
-            }}
-          >
+          <div>
             <h1
               style={{
                 fontSize: '1.5rem',
@@ -48,28 +44,8 @@ export const App: React.FC = () => {
             >
               Financial Calculators
             </h1>
-            <nav
-              aria-label="Main tools"
-              className="nav-inline"
-            >
-              <NavPill
-                label="Repayments"
-                active={tab === 'repayment'}
-                onClick={() => setTab('repayment')}
-              />
-              <NavPill
-                label="Borrowing Capacity"
-                active={tab === 'capacity'}
-                onClick={() => setTab('capacity')}
-              />
-              <NavPill
-                label="Pay & Tax Calculator"
-                active={tab === 'paycalc'}
-                onClick={() => setTab('paycalc')}
-              />
-            </nav>
+            <p className="header-subtitle">{pageLabel[tab]}</p>
           </div>
-          <p className="header-subtitle">{pageLabel[tab]}</p>
         </div>
         <div
           style={{
@@ -78,69 +54,6 @@ export const App: React.FC = () => {
             gap: '0.75rem'
           }}
         >
-          <div
-            className="header-actions-desktop"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <button
-              type="button"
-              onClick={() =>
-                setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-              }
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: '9999px',
-                border: '1px solid var(--border-subtle)',
-                background:
-                  theme === 'dark' ? '#111827' : 'var(--control-bg)',
-                color: 'var(--text-main)',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem'
-              }}
-              aria-label={
-                theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-              }
-            >
-              {theme === 'dark' ? '🌙' : '☀️'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setSignedIn((v) => !v)}
-              style={{
-                borderRadius: '9999px',
-                border: '1px solid var(--border-subtle)',
-                background: signedIn
-                  ? 'var(--control-bg)'
-                  : theme === 'dark'
-                  ? '#ffffff'
-                  : 'var(--control-bg)',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: signedIn ? 0 : '0.2rem 0.8rem',
-                width: signedIn ? 34 : 'auto',
-                height: signedIn ? 34 : 'auto',
-                fontSize: signedIn ? '1rem' : '0.85rem',
-                color: signedIn
-                  ? 'var(--text-main)'
-                  : theme === 'dark'
-                  ? '#111827'
-                  : 'var(--text-main)'
-              }}
-              aria-label={signedIn ? 'Profile' : 'Sign in'}
-            >
-              {signedIn ? '👤' : 'Sign in'}
-            </button>
-          </div>
           <button
             type="button"
             className="nav-toggle"
@@ -189,6 +102,14 @@ export const App: React.FC = () => {
                 active={tab === 'paycalc'}
                 onClick={() => {
                   setTab('paycalc');
+                  setNavOpen(false);
+                }}
+              />
+              <NavItem
+                label="Super Contributions"
+                active={tab === 'super'}
+                onClick={() => {
+                  setTab('super');
                   setNavOpen(false);
                 }}
               />
@@ -308,6 +229,11 @@ export const App: React.FC = () => {
         >
           <PayCalculator />
         </div>
+        <div
+          style={{ display: tab === 'super' ? 'block' : 'none' }}
+        >
+          <SuperContributions />
+        </div>
       </main>
     </div>
   );
@@ -345,8 +271,11 @@ const NavItem: React.FC<NavItemProps> = ({ label, active, onClick }) => (
       textAlign: 'left',
       padding: '0.5rem 0.85rem',
       border: 'none',
-      borderBottom: '1px solid #f3f4f6',
-      backgroundColor: active ? '#eff6ff' : '#ffffff',
+      borderBottom: '1px solid var(--border-subtle)',
+      backgroundColor: active
+        ? 'rgba(37, 99, 235, 0.12)'
+        : 'transparent',
+      color: 'var(--text-main)',
       fontSize: '0.9rem',
       cursor: 'pointer'
     }}

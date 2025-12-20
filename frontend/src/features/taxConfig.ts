@@ -66,6 +66,7 @@ export interface TaxYearConfig {
   nonResident: NonResidentTaxConfig;
   medicare: MedicareYearConfig;
   helpThresholds: HelpThreshold[];
+  concessionalCap?: number;
 }
 
 export interface TaxBandSegment {
@@ -117,7 +118,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 125001, rate: 0.17, baseRepayment: 8700 },
       // $179,286+: 10% on entire repayment income
       { minIncome: 179286, rate: 0.1, baseRepayment: 0, wholeIncome: true }
-    ]
+    ],
+    concessionalCap: 30000
   },
   {
     id: '2024-25',
@@ -170,7 +172,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 144099, rate: 0.09 },
       { minIncome: 152728, rate: 0.095 },
       { minIncome: 162000, rate: 0.1 }
-    ]
+    ],
+    concessionalCap: 27500
   },
   {
     id: '2023-24',
@@ -223,7 +226,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 127947, rate: 0.09 },
       { minIncome: 135643, rate: 0.095 },
       { minIncome: 143852, rate: 0.1 }
-    ]
+    ],
+    concessionalCap: 27500
   },
   {
     id: '2022-23',
@@ -275,7 +279,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 124358, rate: 0.09 },
       { minIncome: 131843, rate: 0.095 },
       { minIncome: 139782, rate: 0.1 }
-    ]
+    ],
+    concessionalCap: 27500
   },
   {
     id: '2021-22',
@@ -327,7 +332,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 120704, rate: 0.09 },
       { minIncome: 127942, rate: 0.095 },
       { minIncome: 135667, rate: 0.1 }
-    ]
+    ],
+    concessionalCap: 27500
   },
   {
     id: '2020-21',
@@ -379,7 +385,8 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       { minIncome: 118437, rate: 0.09 },
       { minIncome: 125568, rate: 0.095 },
       { minIncome: 133149, rate: 0.1 }
-    ]
+    ],
+    concessionalCap: 25000
   }
 ];
 

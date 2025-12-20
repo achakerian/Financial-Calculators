@@ -130,6 +130,8 @@ export const PayCalculator: React.FC = () => {
   // Frequencies shown in the Pay summary table
   const freqOrder: PayFrequency[] = ['weekly', 'monthly', 'annual'];
 
+  const includeSuperInBreakdown = superMode === 'included';
+
   const donutDataBase = [
     // Soft fills aligned with repayment charts
     {
@@ -149,7 +151,7 @@ export const PayCalculator: React.FC = () => {
     },
     {
       key: 'Super',
-      value: employerSuper,
+      value: includeSuperInBreakdown ? employerSuper : 0,
       color: 'rgba(34, 197, 94, 0.3)' // green
     }
   ];
@@ -227,7 +229,9 @@ export const PayCalculator: React.FC = () => {
 
     const medicareInBand = medicareAmount * shareOfTaxable;
     const helpInBand = helpAmount * shareOfTaxable;
-    const superInBand = employerSuper * shareOfGross;
+    const superInBand = includeSuperInBreakdown
+      ? employerSuper * shareOfGross
+      : 0;
 
     const aggDeductionsInBand = medicareInBand + helpInBand + superInBand;
 
@@ -328,13 +332,10 @@ export const PayCalculator: React.FC = () => {
 
           <div
             style={{
-              marginBottom: '0.75rem',
-              display: 'flex',
-              alignItems: 'flex-end',
-              gap: '0.5rem'
+              marginBottom: '0.75rem'
             }}
           >
-            <div style={{ flex: 1 }}>
+            <div>
               {(() => {
                 const unitLabel =
                   frequency === 'annual'
@@ -367,36 +368,6 @@ export const PayCalculator: React.FC = () => {
                 );
               })()}
             </div>
-            {viewMode === 'advanced' && (
-              <button
-                type="button"
-                onClick={() =>
-                  setSuperMode((prev) =>
-                    prev === 'included' ? 'ontop' : 'included'
-                  )
-                }
-                style={{
-                  padding: '0.25rem 0.6rem',
-                  borderRadius: '999px',
-                  border: '1px solid var(--control-border)',
-                  backgroundColor:
-                    superMode === 'included'
-                      ? '#2563eb'
-                      : 'var(--control-bg)',
-                  color:
-                    superMode === 'included'
-                      ? '#ffffff'
-                      : 'var(--text-main)',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {superMode === 'included'
-                  ? 'Gross incl. Super'
-                  : 'Gross excl. Super'}
-              </button>
-            )}
           </div>
 
           <div
@@ -543,109 +514,94 @@ export const PayCalculator: React.FC = () => {
 
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                  gap: '0.75rem'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  gap: '0.5rem',
+                  marginTop: '0.75rem'
                 }}
               >
-                <div>
-                  <label>Tax-free threshold</label>
-                  <button
-                    type="button"
-                    onClick={() => setClaimTaxFree((v) => !v)}
-                    style={{
-                      marginTop: '0.25rem',
-                      width: '100%',
-                      padding: '0.35rem 0.75rem',
-                      borderRadius: '999px',
-                      border: '1px solid var(--control-border)',
-                      backgroundColor: claimTaxFree
-                        ? '#2563eb'
-                        : 'var(--control-bg)',
-                      color: claimTaxFree ? '#ffffff' : 'var(--text-main)',
-                      fontSize: '0.85rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {claimTaxFree ? 'Claimed' : 'Not claimed'}
-                  </button>
-                </div>
-                <div>
-                  <label htmlFor="pc-medicare">Medicare levy</label>
-                  <select
-                    id="pc-medicare"
-                    value={medicare}
-                    onChange={(e) =>
-                      setMedicare(e.target.value as MedicareOption)
-                    }
-                    style={{
-                      width: '100%',
-                      padding: '0.4rem 0.75rem',
-                      fontSize: '0.9rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--control-border)',
-                      backgroundColor: 'var(--control-bg)',
-                      color: 'var(--text-main)'
-                    }}
-                  >
-                    <option value="full">Full (2%)</option>
-                    <option value="reduced">Reduced</option>
-                    <option value="exempt">Exempt</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label>Superannuation treatment</label>
-                <div
+                <label style={{ marginBottom: 0 }}>Tax-free threshold</label>
+                <button
+                  type="button"
+                  onClick={() => setClaimTaxFree((v) => !v)}
                   style={{
-                    display: 'inline-flex',
+                    padding: '0.15rem 0.7rem',
                     borderRadius: '999px',
                     border: '1px solid var(--control-border)',
-                    padding: '2px',
-                    backgroundColor: 'var(--control-bg)',
-                    gap: '2px'
+                    backgroundColor: claimTaxFree
+                      ? '#2563eb'
+                      : 'var(--control-bg)',
+                    color: claimTaxFree ? '#ffffff' : 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setSuperMode('ontop')}
-                    style={{
-                      padding: '0.15rem 0.7rem',
-                      borderRadius: '999px',
-                      border: 'none',
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      backgroundColor:
-                        superMode === 'ontop' ? '#2563eb' : 'transparent',
-                      color:
-                        superMode === 'ontop'
-                          ? '#ffffff'
-                          : 'var(--text-main)'
-                    }}
-                  >
-                    + Superannuation on top
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSuperMode('included')}
-                    style={{
-                      padding: '0.15rem 0.7rem',
-                      borderRadius: '999px',
-                      border: 'none',
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      backgroundColor:
-                        superMode === 'included' ? '#2563eb' : 'transparent',
-                      color:
-                        superMode === 'included'
-                          ? '#ffffff'
-                          : 'var(--text-main)'
-                    }}
-                  >
-                    Included in G
-                  </button>
-                </div>
+                  {claimTaxFree ? 'Yes' : 'No'}
+                </button>
+              </div>
+
+              <div style={{ marginTop: '0.75rem' }}>
+                <label htmlFor="pc-medicare">Medicare levy</label>
+                <select
+                  id="pc-medicare"
+                  value={medicare}
+                  onChange={(e) => setMedicare(e.target.value as MedicareOption)}
+                  style={{
+                    width: '100%',
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.9rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid var(--control-border)',
+                    backgroundColor: 'var(--control-bg)',
+                    color: 'var(--text-main)'
+                  }}
+                >
+                  <option value="full">Full (2%)</option>
+                  <option value="reduced">Reduced</option>
+                  <option value="exempt">Exempt</option>
+                </select>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  gap: '0.5rem',
+                  marginTop: '0.35rem'
+                }}
+              >
+                <label style={{ marginBottom: 0 }}>
+                  Superannuation Included in Salary
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSuperMode((prev) =>
+                      prev === 'included' ? 'ontop' : 'included'
+                    )
+                  }
+                  style={{
+                    padding: '0.15rem 0.7rem',
+                    borderRadius: '999px',
+                    border: '1px solid var(--control-border)',
+                    backgroundColor:
+                      superMode === 'included'
+                        ? '#2563eb'
+                        : 'var(--control-bg)',
+                    color:
+                      superMode === 'included'
+                        ? '#ffffff'
+                        : 'var(--text-main)',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {superMode === 'included' ? 'Yes' : 'No'}
+                </button>
               </div>
 
               <LabeledNumberPC
@@ -765,7 +721,7 @@ export const PayCalculator: React.FC = () => {
             }}
           >
             <div style={{ fontWeight: 600, marginBottom: 4 }}>
-              Cash Breakdown
+              Gross Income Breakdown
             </div>
             <div className="cash-breakdown-layout">
               <div className="cash-breakdown-chart">
@@ -795,7 +751,7 @@ export const PayCalculator: React.FC = () => {
                     annualTax +
                     medicareAmount +
                     helpAmount +
-                    employerSuper;
+                    (includeSuperInBreakdown ? employerSuper : 0);
                   return (
                     <>
                       <DonutBreakdownRow
@@ -824,12 +780,14 @@ export const PayCalculator: React.FC = () => {
                           color="#a855f7"
                         />
                       )}
-                      <DonutBreakdownRow
-                        label="Superannuation"
-                        value={employerSuper}
-                        total={totalCash}
-                        color="#22c55e"
-                      />
+                      {includeSuperInBreakdown && (
+                        <DonutBreakdownRow
+                          label="Superannuation"
+                          value={employerSuper}
+                          total={totalCash}
+                          color="#22c55e"
+                        />
+                      )}
                     </>
                   );
                 })()}
@@ -859,25 +817,26 @@ export const PayCalculator: React.FC = () => {
               No income tax is payable at the current taxable income.
             </div>
           ) : (
-            <div style={{ width: '100%', height: 240 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={taxBandChartData}
-                  barCategoryGap={4}
-                  margin={{ top: 8, right: 8, bottom: 8, left: 0 }}
-                >
-                  <XAxis type="number" hide domain={[0, 100]} />
-                  <YAxis
-                    type="category"
-                    dataKey="shortLabel"
-                    tick={{ fontSize: 10, angle: -20, textAnchor: 'end' }}
-                    width={60}
-                  />
-                  <Tooltip
-                    content={<TaxBandTooltip />}
-                    cursor={{ fill: 'rgba(148, 163, 184, 0.12)' }}
-                  />
+            <>
+              <div style={{ width: '100%', height: 240 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={taxBandChartData}
+                    barCategoryGap={4}
+                    margin={{ top: 8, right: 8, bottom: 8, left: 0 }}
+                  >
+                    <XAxis type="number" hide domain={[0, 100]} />
+                    <YAxis
+                      type="category"
+                      dataKey="shortLabel"
+                      tick={{ fontSize: 10, angle: -20, textAnchor: 'end' }}
+                      width={60}
+                    />
+                    <Tooltip
+                      content={<TaxBandTooltip />}
+                      cursor={{ fill: 'rgba(148, 163, 184, 0.12)' }}
+                    />
                   <Bar
                     dataKey="netShare"
                     stackId="band"
@@ -908,7 +867,19 @@ export const PayCalculator: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          )}
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)'
+              }}
+            >
+              "Other deductions" combines Medicare levy, HELP repayments and
+              superannuation (when included in gross pay). Itemised breakdown
+              in the 'Gross Income Breakdown' section.
+            </div>
+          </>
+        )}
         </div>
       </section>
     </div>
@@ -1189,13 +1160,15 @@ interface DonutBreakdownRowProps {
   value: number;
   total: number;
   color: string;
+  showValueAndPct?: boolean;
 }
 
 const DonutBreakdownRow: React.FC<DonutBreakdownRowProps> = ({
   label,
   value,
   total,
-  color
+  color,
+  showValueAndPct = true
 }) => {
   const pct = total > 0 ? (value / total) * 100 : 0;
   return (
@@ -1227,12 +1200,16 @@ const DonutBreakdownRow: React.FC<DonutBreakdownRowProps> = ({
           gap: '0.35rem'
         }}
       >
-        <div style={{ fontWeight: 500 }}>
-          {currencyFormatter0.format(value)}
-        </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          {pct.toFixed(0)}%
-        </div>
+        {showValueAndPct && (
+          <>
+            <div style={{ fontWeight: 500 }}>
+              {currencyFormatter0.format(value)}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {pct.toFixed(0)}%
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
