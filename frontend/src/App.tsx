@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { RepaymentCalculator } from './features/RepaymentCalculator';
 import { AdvancedSimulator } from './features/AdvancedSimulator';
 import { BorrowingCapacity } from './features/BorrowingCapacity';
+import { PayCalculator } from './features/PayCalculator';
 
-type TabId = 'repayment' | 'capacity';
+type TabId = 'repayment' | 'capacity' | 'paycalc';
 
 export const App: React.FC = () => {
   const [tab, setTab] = useState<TabId>('repayment');
@@ -16,7 +17,8 @@ export const App: React.FC = () => {
 
   const pageLabel: Record<TabId, string> = {
     repayment: repaymentView === 'simple' ? 'Repayments' : 'Repayments (adv)',
-    capacity: 'Borrowing Capacity'
+    capacity: 'Borrowing Capacity',
+    paycalc: 'Pay & Tax Calculator'
   };
 
   return (
@@ -59,6 +61,11 @@ export const App: React.FC = () => {
                 label="Borrowing Capacity"
                 active={tab === 'capacity'}
                 onClick={() => setTab('capacity')}
+              />
+              <NavPill
+                label="PayCalculator"
+                active={tab === 'paycalc'}
+                onClick={() => setTab('paycalc')}
               />
             </nav>
           </div>
@@ -165,6 +172,14 @@ export const App: React.FC = () => {
                   setNavOpen(false);
                 }}
               />
+              <NavItem
+                label="PayCalculator"
+                active={tab === 'paycalc'}
+                onClick={() => {
+                  setTab('paycalc');
+                  setNavOpen(false);
+                }}
+              />
             </div>
           )}
         </div>
@@ -206,6 +221,11 @@ export const App: React.FC = () => {
           style={{ display: tab === 'capacity' ? 'block' : 'none' }}
         >
           <BorrowingCapacity />
+        </div>
+        <div
+          style={{ display: tab === 'paycalc' ? 'block' : 'none' }}
+        >
+          <PayCalculator />
         </div>
       </main>
     </div>

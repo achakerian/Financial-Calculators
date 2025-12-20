@@ -71,49 +71,16 @@ export const BorrowingCapacity: React.FC = () => {
           <h2 className="page-heading" style={{ marginBottom: 0 }}>
             Borrowing Capacity
           </h2>
-          <div
+          <p
             style={{
-              display: 'inline-flex',
-              borderRadius: '999px',
-              border: '1px solid #d1d5db',
-              padding: '2px',
-              backgroundColor: '#f9fafb',
-              gap: '2px'
+              margin: 0,
+              fontSize: '0.9rem',
+              color: 'var(--text-muted)'
             }}
-            aria-label="Borrowing Capacity view mode"
           >
-            <button
-              type="button"
-              onClick={() => setViewMode('simple')}
-              style={{
-                padding: '0.15rem 0.7rem',
-                borderRadius: '999px',
-                border: 'none',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                backgroundColor: viewMode === 'simple' ? '#2563eb' : 'transparent',
-                color: viewMode === 'simple' ? '#ffffff' : '#374151'
-              }}
-            >
-              Simple
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('advanced')}
-              style={{
-                padding: '0.15rem 0.7rem',
-                borderRadius: '999px',
-                border: 'none',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                backgroundColor:
-                  viewMode === 'advanced' ? '#2563eb' : 'transparent',
-                color: viewMode === 'advanced' ? '#ffffff' : '#374151'
-              }}
-            >
-              Advanced
-            </button>
-          </div>
+            Estimate how much you could borrow based on your income, expenses
+            and a stress-tested interest rate.
+          </p>
         </header>
         <form
           style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}
@@ -138,16 +105,6 @@ export const BorrowingCapacity: React.FC = () => {
               setExpensesMonthly(value / 12);
             }}
           />
-          {viewMode === 'advanced' && (
-            <LabeledCurrencyBC
-              id="bc-debt-repayments"
-              label="Existing debt repayments (annual)"
-              varSymbol="D"
-              value={debtRepaymentsAnnual}
-              min={0}
-              onChange={setDebtRepaymentsAnnual}
-            />
-          )}
           <LabeledNumberBC
             id="bc-interest-rate"
             label="Interest rate"
@@ -169,18 +126,94 @@ export const BorrowingCapacity: React.FC = () => {
             step={1}
             onChange={setLoanTermYears}
           />
+          {/* Simple / Advanced toggle below shared inputs */}
+          <div
+            style={{
+              marginTop: '0.75rem',
+              marginBottom: viewMode === 'advanced' ? '0.25rem' : 0
+            }}
+          >
+            <h3
+              style={{
+                margin: 0,
+                marginBottom: '0.35rem',
+                fontSize: '0.9rem'
+              }}
+            >
+              Additional Details
+            </h3>
+            <div
+              style={{
+                display: 'inline-flex',
+                borderRadius: '999px',
+                border: '1px solid var(--control-border)',
+                padding: '2px',
+                backgroundColor: 'var(--control-bg)',
+                gap: '2px'
+              }}
+              aria-label="Borrowing Capacity view mode"
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('simple')}
+                style={{
+                  padding: '0.15rem 0.7rem',
+                  borderRadius: '999px',
+                  border: 'none',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  backgroundColor:
+                    viewMode === 'simple' ? '#2563eb' : 'transparent',
+                  color:
+                    viewMode === 'simple' ? '#ffffff' : 'var(--text-main)'
+                }}
+              >
+                Simple
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('advanced')}
+                style={{
+                  padding: '0.15rem 0.7rem',
+                  borderRadius: '999px',
+                  border: 'none',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  backgroundColor:
+                    viewMode === 'advanced' ? '#2563eb' : 'transparent',
+                  color:
+                    viewMode === 'advanced'
+                      ? '#ffffff'
+                      : 'var(--text-main)'
+                }}
+              >
+              Advanced
+              </button>
+            </div>
+          </div>
+
           {viewMode === 'advanced' && (
-            <LabeledNumberBC
-              id="bc-surplus-share"
-              label="Share of surplus used for repayments (%)"
-              varSymbol="s"
-              suffix="%"
-              value={surplusSharePercent}
-              min={10}
-              max={100}
-              step={5}
-              onChange={setSurplusSharePercent}
-            />
+            <>
+              <LabeledCurrencyBC
+                id="bc-debt-repayments"
+                label="Existing debt repayments (annual)"
+                varSymbol="D"
+                value={debtRepaymentsAnnual}
+                min={0}
+                onChange={setDebtRepaymentsAnnual}
+              />
+              <LabeledNumberBC
+                id="bc-surplus-share"
+                label="Share of surplus used for repayments (%)"
+                varSymbol="s"
+                suffix="%"
+                value={surplusSharePercent}
+                min={10}
+                max={100}
+                step={5}
+                onChange={setSurplusSharePercent}
+              />
+            </>
           )}
         </form>
       </section>
