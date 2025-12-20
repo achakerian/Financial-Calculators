@@ -78,59 +78,69 @@ export const App: React.FC = () => {
             gap: '0.75rem'
           }}
         >
-          <button
-            type="button"
-            onClick={() =>
-              setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-            }
+          <div
+            className="header-actions-desktop"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: '9999px',
-              border: '1px solid var(--border-subtle)',
-              background: theme === 'dark' ? '#111827' : 'var(--control-bg)',
-              color: 'var(--text-main)',
-              cursor: 'pointer',
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem'
+              gap: '0.5rem'
             }}
-            aria-label={
-              theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-            }
           >
-            {theme === 'dark' ? '🌙' : '☀️'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSignedIn((v) => !v)}
-            style={{
-              borderRadius: '9999px',
-              border: '1px solid var(--border-subtle)',
-              background: signedIn
-                ? 'var(--control-bg)'
-                : theme === 'dark'
-                ? '#ffffff'
-                : 'var(--control-bg)',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: signedIn ? 0 : '0.2rem 0.8rem',
-              width: signedIn ? 34 : 'auto',
-              height: signedIn ? 34 : 'auto',
-              fontSize: signedIn ? '1rem' : '0.85rem',
-              color: signedIn
-                ? 'var(--text-main)'
-                : theme === 'dark'
-                ? '#111827'
-                : 'var(--text-main)'
-            }}
-            aria-label={signedIn ? 'Profile' : 'Sign in'}
-          >
-            {signedIn ? '👤' : 'Sign in'}
-          </button>
+            <button
+              type="button"
+              onClick={() =>
+                setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+              }
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '9999px',
+                border: '1px solid var(--border-subtle)',
+                background:
+                  theme === 'dark' ? '#111827' : 'var(--control-bg)',
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem'
+              }}
+              aria-label={
+                theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+              }
+            >
+              {theme === 'dark' ? '🌙' : '☀️'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSignedIn((v) => !v)}
+              style={{
+                borderRadius: '9999px',
+                border: '1px solid var(--border-subtle)',
+                background: signedIn
+                  ? 'var(--control-bg)'
+                  : theme === 'dark'
+                  ? '#ffffff'
+                  : 'var(--control-bg)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: signedIn ? 0 : '0.2rem 0.8rem',
+                width: signedIn ? 34 : 'auto',
+                height: signedIn ? 34 : 'auto',
+                fontSize: signedIn ? '1rem' : '0.85rem',
+                color: signedIn
+                  ? 'var(--text-main)'
+                  : theme === 'dark'
+                  ? '#111827'
+                  : 'var(--text-main)'
+              }}
+              aria-label={signedIn ? 'Profile' : 'Sign in'}
+            >
+              {signedIn ? '👤' : 'Sign in'}
+            </button>
+          </div>
           <button
             type="button"
             className="nav-toggle"
@@ -147,12 +157,14 @@ export const App: React.FC = () => {
                 top: '100%',
                 right: '1.5rem',
                 marginTop: '0.5rem',
-                background: '#ffffff',
+                background: 'var(--panel-bg)',
                 borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: '0 4px 12px rgba(15,23,42,0.25)',
                 zIndex: 20,
-                minWidth: '220px'
+                minWidth: '220px',
+                display: 'flex',
+                flexDirection: 'column'
               }}
               role="menu"
             >
@@ -180,6 +192,75 @@ export const App: React.FC = () => {
                   setNavOpen(false);
                 }}
               />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.5rem 0.75rem',
+                  borderTop: '1px solid var(--border-subtle)',
+                  gap: '0.5rem'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTheme((prev) =>
+                      prev === 'light' ? 'dark' : 'light'
+                    )
+                  }
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '9999px',
+                    border: '1px solid var(--border-subtle)',
+                    background:
+                      theme === 'dark' ? '#111827' : 'var(--control-bg)',
+                    color: 'var(--text-main)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}
+                  aria-label={
+                    theme === 'dark'
+                      ? 'Switch to light mode'
+                      : 'Switch to dark mode'
+                  }
+                >
+                  {theme === 'dark' ? '🌙' : '☀️'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignedIn((v) => !v)}
+                  style={{
+                    borderRadius: '9999px',
+                    border: '1px solid var(--border-subtle)',
+                    background: signedIn
+                      ? 'var(--control-bg)'
+                      : theme === 'dark'
+                      ? '#ffffff'
+                      : 'var(--control-bg)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: signedIn ? 0 : '0.2rem 0.8rem',
+                    width: signedIn ? 34 : 'auto',
+                    height: signedIn ? 34 : 'auto',
+                    fontSize: signedIn ? '1rem' : '0.85rem',
+                    color: signedIn
+                      ? 'var(--text-main)'
+                      : theme === 'dark'
+                      ? '#111827'
+                      : 'var(--text-main)'
+                  }}
+                  aria-label={signedIn ? 'Profile' : 'Sign in'}
+                >
+                  {signedIn ? '👤' : 'Sign in'}
+                </button>
+              </div>
             </div>
           )}
         </div>

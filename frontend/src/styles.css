@@ -54,6 +54,10 @@ body {
   gap: 0.1rem;
 }
 
+.header-actions-desktop {
+  display: none;
+}
+
 .header-subtitle {
   margin: 0;
   font-size: 0.9rem;
@@ -252,6 +256,10 @@ body {
   .pay-results-grid {
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
+
+  .header-actions-desktop {
+    display: flex;
+  }
 }
 
 @media (max-width: 899px) {
@@ -264,6 +272,12 @@ body {
 @media (max-width: 600px) {
   .app-header {
     padding: 0.75rem 1rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -301,5 +315,11 @@ body {
     flex: 0 0 auto;
     transform: none;
     margin-top: 0.75rem;
+  }
+
+  /* Hide annual summary cards on very small screens to avoid
+     repetition with the Pay summary table. */
+  .pay-summary-cards {
+    display: none;
   }
 }

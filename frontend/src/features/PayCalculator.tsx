@@ -32,6 +32,18 @@ import {
   type TaxYearId
 } from './taxConfig';
 
+const splitGrossIntoSalaryAndSuper = (
+  packageTotal: number,
+  superRate: number
+) => {
+  if (superRate <= 0) {
+    return { employerSuper: 0, salaryPortionAnnual: packageTotal };
+  }
+  const salaryPortionAnnual = packageTotal / (1 + superRate);
+  const employerSuper = packageTotal - salaryPortionAnnual;
+  return { employerSuper, salaryPortionAnnual };
+};
+
 export const PayCalculator: React.FC = () => {
   const [viewMode, setViewMode] = useState<'simple' | 'advanced'>('simple');
   const [grossAnnual, setGrossAnnual] = useState<number>(90000);
@@ -115,12 +127,8 @@ export const PayCalculator: React.FC = () => {
   const taxPerPeriod = totalTax / divisor;
   const superPerPeriod = employerSuper / divisor;
 
-  const freqOrder: PayFrequency[] = [
-    'weekly',
-    'fortnightly',
-    'monthly',
-    'annual'
-  ];
+  // Frequencies shown in the Pay summary table
+  const freqOrder: PayFrequency[] = ['weekly', 'monthly', 'annual'];
 
   const donutDataBase = [
     // Soft fills aligned with repayment charts
@@ -151,7 +159,11 @@ export const PayCalculator: React.FC = () => {
       ? [
           donutDataBase[0],
           donutDataBase[1],
-          { key: 'HELP repayments', value: helpAmount, color: '#a855f7' },
+          {
+            key: 'HELP repayments',
+            value: helpAmount,
+            color: 'rgba(168, 85, 247, 0.35)' // soft purple, consistent alpha
+          },
           donutDataBase[2],
           donutDataBase[3]
         ]
@@ -315,39 +327,76 @@ export const PayCalculator: React.FC = () => {
           </div>
 
           <div
-            style={{ marginBottom: '0.75rem' }}
+            style={{
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: '0.5rem'
+            }}
           >
-            {(() => {
-              const unitLabel =
-                frequency === 'annual'
-                  ? 'annual'
-                  : frequency === 'fytd'
-                  ? 'FYTD'
-                  : FREQUENCY_LABEL[frequency].toLowerCase();
-              const label = useFytd
-                ? 'Gross income (FYTD)'
-                : `Gross income (${unitLabel})`;
-              const factor = frequency === 'annual' ? 1 : divisor;
-              const displayValue = useFytd
-                ? grossFytd ?? grossAnnual * financialYearProgress
-                : grossAnnual / factor;
-              return (
-                <LabeledCurrencyPC
-                  id="pc-gross-income"
-                  label={label}
-                  varSymbol="G"
-                  value={displayValue}
-                  min={0}
-                  onChange={(val) => {
-                    if (useFytd) {
-                      setGrossFytd(val);
-                    } else {
-                      setGrossAnnual(val * factor);
-                    }
-                  }}
-                />
-              );
-            })()}
+            <div style={{ flex: 1 }}>
+              {(() => {
+                const unitLabel =
+                  frequency === 'annual'
+                    ? 'annual'
+                    : frequency === 'fytd'
+                    ? 'FYTD'
+                    : FREQUENCY_LABEL[frequency].toLowerCase();
+                const label = useFytd
+                  ? 'Gross income (FYTD)'
+                  : `Gross income (${unitLabel})`;
+                const factor = frequency === 'annual' ? 1 : divisor;
+                const displayValue = useFytd
+                  ? grossFytd ?? grossAnnual * financialYearProgress
+                  : grossAnnual / factor;
+                return (
+                  <LabeledCurrencyPC
+                    id="pc-gross-income"
+                    label={label}
+                    varSymbol="G"
+                    value={displayValue}
+                    min={0}
+                    onChange={(val) => {
+                      if (useFytd) {
+                        setGrossFytd(val);
+                      } else {
+                        setGrossAnnual(val * factor);
+                      }
+                    }}
+                  />
+                );
+              })()}
+            </div>
+            {viewMode === 'advanced' && (
+              <button
+                type="button"
+                onClick={() =>
+                  setSuperMode((prev) =>
+                    prev === 'included' ? 'ontop' : 'included'
+                  )
+                }
+                style={{
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '999px',
+                  border: '1px solid var(--control-border)',
+                  backgroundColor:
+                    superMode === 'included'
+                      ? '#2563eb'
+                      : 'var(--control-bg)',
+                  color:
+                    superMode === 'included'
+                      ? '#ffffff'
+                      : 'var(--text-main)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {superMode === 'included'
+                  ? 'Gross incl. Super'
+                  : 'Gross excl. Super'}
+              </button>
+            )}
           </div>
 
           <div
@@ -627,6 +676,7 @@ export const PayCalculator: React.FC = () => {
       <section aria-label="Pay & Tax results">
         {/* Summary row (annual figures) */}
         <div
+          className="pay-summary-cards"
           style={{
             marginBottom: '0.9rem',
             display: 'grid',
@@ -666,12 +716,12 @@ export const PayCalculator: React.FC = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns:
-                  'minmax(0, 1.2fr) repeat(4, minmax(0, 1fr))',
+                  'minmax(0, 1.2fr) repeat(3, minmax(0, 1fr))',
                 fontSize: '0.85rem',
                 borderBottom: '1px solid var(--border-subtle)',
                 paddingBottom: '0.25rem',
                 marginBottom: '0.25rem',
-                columnGap: '0.75rem'
+                columnGap: '1.1rem'
               }}
             >
               <div></div>
@@ -698,13 +748,12 @@ export const PayCalculator: React.FC = () => {
               values={freqOrder.map((f) => netAnnual / PER_FACTOR[f])}
             />
             <PaySummaryRow
-              label="Superannuation"
+              label="Super"
               values={freqOrder.map((f) => employerSuper / PER_FACTOR[f])}
             />
             <PaySummaryRow
               label="Tax"
               values={freqOrder.map((f) => totalTax / PER_FACTOR[f])}
-              isNegative
             />
           </div>
 
@@ -864,18 +913,6 @@ export const PayCalculator: React.FC = () => {
       </section>
     </div>
   );
-};
-
-const splitGrossIntoSalaryAndSuper = (
-  packageTotal: number,
-  superRate: number
-) => {
-  if (superRate <= 0) {
-    return { employerSuper: 0, salaryPortionAnnual: packageTotal };
-  }
-  const salaryPortionAnnual = packageTotal / (1 + superRate);
-  const employerSuper = packageTotal - salaryPortionAnnual;
-  return { employerSuper, salaryPortionAnnual };
 };
 
 const currencyFormatter0 = new Intl.NumberFormat('en-AU', {
@@ -1116,17 +1153,15 @@ const PaySummaryRow: React.FC<PaySummaryRowProps> = ({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.2fr) repeat(4, minmax(0, 1fr))',
+        gridTemplateColumns: 'minmax(0, 1.2fr) repeat(3, minmax(0, 1fr))',
         fontSize: '0.85rem',
-        padding: '0.2rem 0',
-        columnGap: '0.75rem'
+        padding: '0.25rem 0',
+        columnGap: '1.1rem'
       }}
     >
       <div
         style={{
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
+          textAlign: 'left'
         }}
       >
         {label}
@@ -1134,7 +1169,11 @@ const PaySummaryRow: React.FC<PaySummaryRowProps> = ({
       {values.map((v, index) => (
         <div
           key={index}
-          style={{ textAlign: 'right', fontWeight: 500 }}
+          style={{
+            textAlign: 'right',
+            fontWeight: 500,
+            whiteSpace: 'nowrap'
+          }}
         >
           {isNegative && v > 0
             ? `−${currencyFormatter0.format(Math.abs(v))}`
