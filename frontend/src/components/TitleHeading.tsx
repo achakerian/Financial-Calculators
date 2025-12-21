@@ -54,7 +54,7 @@ export const TitleHeading: React.FC = () => {
 
   return (
     <header
-      className={`sticky top-0 z-40 mb-6 overflow-hidden bg-gradient-to-br from-[#0f1f46] via-[#142f6e] to-[#08132d] px-6 text-white shadow-xl transition-all ${
+      className={`sticky top-0 z-40 mb-6 overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-950 px-6 text-white shadow-xl transition-all ${
         isCondensed ? 'py-3' : 'py-6'
       }`}
     >

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAccordion';
+import { PageContainer } from '../components/PageContainer';
 
 const items: FeatureAccordionItem[] = [
   {
@@ -26,8 +27,8 @@ const items: FeatureAccordionItem[] = [
 
 export const SuperPage: React.FC = () => {
   return (
-    <div className="px-6 pb-32 pt-6">
+    <PageContainer>
       <FeatureAccordion items={items} />
-    </div>
+    </PageContainer>
   );
 };

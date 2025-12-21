@@ -25,7 +25,7 @@ export const FeatureAccordion: React.FC<FeatureAccordionProps> = ({
         return (
           <div
             key={item.title}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200 bg-brand-25 p-4 shadow-sm transition dark:border-slate-800 dark:bg-brand-800"
           >
             <button
               type="button"
@@ -43,7 +43,7 @@ export const FeatureAccordion: React.FC<FeatureAccordionProps> = ({
                 </h2>
               </div>
               <span
-                className={`text-xl font-semibold text-blue-600 transition-transform dark:text-blue-300 ${
+                className={`text-xl font-semibold text-brand-500 transition-transform ${
                   isOpen ? 'rotate-45' : ''
                 }`}
               >
