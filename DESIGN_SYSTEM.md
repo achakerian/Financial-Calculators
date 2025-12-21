@@ -42,23 +42,41 @@
 
 ### Brand Colors
 
-#### Primary (Blue)
-- **Purpose:** Interactive elements, CTAs, active states
-- **Light Mode:** `blue-600` (#2563eb)
-- **Dark Mode:** `blue-300` (#93c5fd)
+The app uses a custom 5-color brand palette for a professional, cohesive navy/blue identity:
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `brand-950` | #162B46 | Dark mode background, header (darkest navy) |
+| `brand-800` | #1F3A5F | Dark mode surfaces, header gradient (dark navy) |
+| `brand-500` | #4A6FA5 | Primary interactive elements, unified light/dark (medium blue) |
+| `brand-50` | #E9EEF4 | Light mode background (very light blue-gray) |
+| `brand-25` | #F5F7FA | Light mode surfaces/cards (almost white) |
 
 ```tsx
-// Usage
-className="text-blue-600 dark:text-blue-300"
-className="bg-blue-600 hover:bg-blue-700"
+// Background colors
+className="bg-brand-50 dark:bg-brand-950"           // Page background
+className="bg-brand-25 dark:bg-brand-800"           // Cards, surfaces
+className="bg-brand-25/95 dark:bg-brand-800/95"     // Bottom nav (with transparency)
+
+// Interactive elements (unified - no dark variant needed!)
+className="text-brand-500"                          // Active nav, buttons, accents
+
+// Header gradient
+className="bg-gradient-to-br from-brand-950 via-brand-800 to-brand-950"
 ```
 
+**Key Benefits:**
+- Unified brand identity across light and dark modes
+- `brand-500` works in both modes without dark: variant
+- Professional navy aesthetic for financial context
+- Subtle color transitions between modes
+
 #### Secondary (Amber/Sun)
-- **Purpose:** Warnings, highlights, theme toggle
-- **Light/Dark:** `amber-300` (#fcd34d)
+- **Purpose:** Theme toggle sun icon only
+- **Color:** `amber-300` (#fcd34d)
 
 ```tsx
-// Usage - Limited to sun icon
+// Usage - Limited to sun icon in TitleHeading
 className="text-amber-300"
 ```
 
@@ -68,15 +86,15 @@ className="text-amber-300"
 
 | Token | Light Mode | Dark Mode | Usage |
 |-------|------------|-----------|-------|
-| `bg-primary` | `slate-100` (#f1f5f9) | `slate-950` (#020617) | Main page background |
-| `bg-surface` | `white` (#ffffff) | `slate-900` (#0f172a) | Cards, panels |
-| `bg-elevated` | `white/95` | `slate-900/95` | Bottom nav, modals |
-| `bg-subtle` | `white/70` | `slate-900/70` | Glassmorphic effects |
+| `bg-primary` | `brand-50` (#E9EEF4) | `brand-950` (#162B46) | Main page background |
+| `bg-surface` | `brand-25` (#F5F7FA) | `brand-800` (#1F3A5F) | Cards, panels |
+| `bg-elevated` | `brand-25/95` | `brand-800/95` | Bottom nav, modals |
+| `bg-subtle` | `brand-25/70` | `brand-800/70` | Glassmorphic effects |
 
 ```tsx
 // Standard background pattern
-<body className="bg-slate-100 dark:bg-slate-950">
-  <div className="bg-white dark:bg-slate-900"> {/* Card */}
+<body className="bg-brand-50 dark:bg-brand-950">
+  <div className="bg-brand-25 dark:bg-brand-800"> {/* Card */}
   </div>
 </body>
 ```
@@ -105,7 +123,7 @@ className="text-amber-300"
 |-------|------------|-----------|-------|
 | `border-primary` | `slate-200` (#e2e8f0) | `slate-800` (#1e293b) | Card borders, dividers |
 | `border-subtle` | `slate-200/80` | `slate-800/80` | Nested borders, secondary dividers |
-| `border-focus` | `blue-500` (#3b82f6) | `blue-400` (#60a5fa) | Focus rings |
+| `border-focus` | `brand-500` (#4A6FA5) | `brand-500` (#4A6FA5) | Focus rings |
 
 ```tsx
 // Border patterns
@@ -115,14 +133,14 @@ className="border border-slate-200/80 dark:border-slate-800/80" // Subtle
 
 ### Special Colors
 
-#### Header Gradient (Dark Blue)
-- **Custom gradient** for `TitleHeading` component only
-- Colors: `from-[#0f1f46] via-[#142f6e] to-[#08132d]`
-- **Do not use elsewhere** - this is signature branding
+#### Header Gradient (Brand Navy)
+- **Brand gradient** for `TitleHeading` component only
+- Uses brand colors: `from-brand-950 via-brand-800 to-brand-950`
+- **Do not use elsewhere** - this is signature header branding
 
 ```tsx
 // Only in TitleHeading.tsx
-className="bg-gradient-to-br from-[#0f1f46] via-[#142f6e] to-[#08132d]"
+className="bg-gradient-to-br from-brand-950 via-brand-800 to-brand-950"
 ```
 
 #### Transparency Levels
@@ -205,18 +223,34 @@ All spacing uses Tailwind's default 4px-based scale:
 
 ### Layout Containers
 
-#### Page Container
-**Standard wrapper for all pages:**
+#### Page Container Component
+**Standard wrapper component for all pages:**
 ```tsx
-<div className="px-6 pb-32 pt-6">
-  {/* Page content */}
-</div>
+import { PageContainer } from '../components/PageContainer';
+
+export const MyPage: React.FC = () => {
+  return (
+    <PageContainer>
+      {/* Page content */}
+    </PageContainer>
+  );
+};
+
+// Optional: Add custom classes
+<PageContainer className="custom-class">
+  {/* content */}
+</PageContainer>
 ```
+
+**Component specs:**
+- **File:** `src/components/PageContainer.tsx`
+- **Classes:** `px-6 pb-32 pt-6`
 - **Horizontal:** `px-6` (24px) - Consistent page margins
 - **Top:** `pt-6` (24px) - Spacing below sticky header
 - **Bottom:** `pb-32` (128px) - Extra space above bottom nav
+- **Props:** `children`, optional `className`
 
-**Usage:** Apply to every page component wrapper
+**Usage:** Use in every page component instead of manual div wrapper
 
 #### Content Max Width
 ```tsx
@@ -350,7 +384,7 @@ All spacing uses Tailwind's default 4px-based scale:
 
 #### Title Heading Component
 ```tsx
-<header className="sticky top-0 z-40 mb-6 bg-gradient-to-br from-[#0f1f46] via-[#142f6e] to-[#08132d] px-6 shadow-xl transition-all">
+<header className="sticky top-0 z-40 mb-6 bg-gradient-to-br from-brand-950 via-brand-800 to-brand-950 px-6 shadow-xl transition-all">
   {/* Decorative circles */}
   <div className="pointer-events-none absolute -left-12 -top-10 h-48 w-48 rounded-full border border-white/10"></div>
 
