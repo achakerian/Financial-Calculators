@@ -4,7 +4,7 @@ import { PageContainer } from '../components/PageContainer';
 export const LoginPage: React.FC = () => {
   return (
     <PageContainer>
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-brand-25/70 p-8 text-center text-slate-700 shadow-inner backdrop-blur dark:border-slate-700 dark:bg-brand-800/70 dark:text-slate-200">
+      <div className="rounded-3xl border-2 border-dashed border-slate-400 bg-white/80 p-8 text-center text-slate-700 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-brand-800/70 dark:text-slate-200">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">
           Under construction
         </p>

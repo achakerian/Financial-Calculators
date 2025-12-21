@@ -16,7 +16,7 @@ const navItems = [
 
 export const BottomNav: React.FC = () => {
   return (
-    <nav className="safe-area-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-brand-25/95 backdrop-blur dark:border-slate-800 dark:bg-brand-800/95">
+    <nav className="safe-area-bottom fixed bottom-0 left-0 right-0 z-50 border-t-2 border-slate-300 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-brand-800/95">
       <div className="flex h-16 items-center justify-around">
         {navItems.map((item) => (
           <NavLink
