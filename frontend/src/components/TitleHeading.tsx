@@ -88,13 +88,13 @@ export const TitleHeading: React.FC = () => {
           }`}
         >
           {isDarkMode ? (
-            <SunIcon className={`${isCondensed ? 'h-[15px] w-[15px]' : 'h-6 w-6'} text-amber-300`} />
-          ) : (
             <MoonIcon className={`${isCondensed ? 'h-[15px] w-[15px]' : 'h-6 w-6'} text-blue-100`} />
+          ) : (
+            <SunIcon className={`${isCondensed ? 'h-[15px] w-[15px]' : 'h-6 w-6'} text-amber-300`} />
           )}
           {!isCondensed && (
             <span className="mt-1 text-[9px] font-semibold tracking-wide text-white/70">
-              {isDarkMode ? 'LIGHT' : 'DARK'}
+              {isDarkMode ? 'DARK' : 'LIGHT'}
             </span>
           )}
         </button>
