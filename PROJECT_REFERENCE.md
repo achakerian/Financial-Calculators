@@ -27,6 +27,20 @@ A mobile-first financial calculator platform built with React, TypeScript, and T
 
 ---
 
+## Documentation
+
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Complete design system documentation
+  - Color palette (light & dark mode)
+  - Typography scale and patterns
+  - Component specifications
+  - Spacing and layout standards
+  - Accessibility guidelines
+  - Code examples and usage patterns
+
+**📘 Read DESIGN_SYSTEM.md before creating new UI components**
+
+---
+
 ## Folder Structure
 
 ```
@@ -71,7 +85,8 @@ Financial Calculators/
 ├── api/                     # Backend API workspace
 ├── package.json             # Monorepo root
 ├── pnpm-workspace.yaml      # Workspace configuration
-└── PROJECT_REFERENCE.md     # This file
+├── PROJECT_REFERENCE.md     # This file
+└── DESIGN_SYSTEM.md         # Design system documentation
 
 ```
 
