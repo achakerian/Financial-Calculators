@@ -232,74 +232,6 @@ export const LoanCalculatorView: React.FC<LoanCalculatorViewProps> = ({
 
       <div className="mt-6">
         <CollapsibleContainer
-          title="Loan Balance Over Time"
-          padded={false}
-          collapsible
-          defaultOpen={false}
-          accent="blue"
-        >
-          <p className="text-xs text-slate-500">
-            Hover over the graph to see the breakdown between principle vs interest for each month of the loan.
-          </p>
-          <BalanceChart schedule={schedule} height={300} />
-        </CollapsibleContainer>
-      </div>
-
-      <div className="mt-6">
-        <CollapsibleContainer
-          title="Detailed Repayment Breakdown"
-          collapsible
-          defaultOpen={false}
-          padded={false}
-          accent="blue"
-        >
-          <ToggleGroup
-            options={breakdownViewOptions}
-            value={breakdownView}
-            onChange={onBreakdownViewChange}
-          />
-          <div className="max-h-[360px] overflow-y-auto">
-            <table className="mt-3 w-full table-fixed text-left text-xs text-slate-600 dark:text-slate-200">
-              <thead>
-                <tr className="text-slate-400">
-                  <th className="pb-2 pr-3">{breakdownView === 'monthly' ? 'Month' : 'Year'}</th>
-                  <th className="pb-2 pl-4">Principle</th>
-                  <th className="pb-2 pl-4">Interest</th>
-                  <th className="pb-2 text-right">Loan remaining</th>
-                </tr>
-              </thead>
-              <tbody>
-                {breakdownRows.map((row, index) => (
-                  <tr key={`${row.label}-${index}`} className="border-t border-slate-100 dark:border-slate-800">
-                    <td className="py-2 pr-3 font-semibold">
-                      {breakdownView === 'monthly' ? (
-                        <>
-                          <div>{row.monthLabel}</div>
-                          <div className="text-[11px] text-slate-400">{row.yearLabel}</div>
-                        </>
-                      ) : (
-                        <div>{row.label}</div>
-                      )}
-                    </td>
-                    <td className="py-2 pl-4">
-                      {formatCurrency(row.principal)}
-                      <div className="text-[10px] text-slate-400">{row.principalPct?.toFixed(0)}%</div>
-                    </td>
-                    <td className="py-2 pl-4">
-                      {formatCurrency(row.interest)}
-                      <div className="text-[10px] text-slate-400">{row.interestPct?.toFixed(0)}%</div>
-                    </td>
-                    <td className="py-2 text-right">{formatCurrency(row.balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CollapsibleContainer>
-      </div>
-
-      <div className="mt-6">
-        <CollapsibleContainer
           title="Repayments or Rate Change"
           collapsible
           defaultOpen={false}
@@ -505,6 +437,74 @@ export const LoanCalculatorView: React.FC<LoanCalculatorViewProps> = ({
                 </div>
               </div>
             );})}
+          </div>
+        </CollapsibleContainer>
+      </div>
+
+      <div className="mt-6">
+        <CollapsibleContainer
+          title="Loan Balance (graph)"
+          padded={false}
+          collapsible
+          defaultOpen={false}
+          accent="blue"
+        >
+          <p className="text-xs text-slate-500">
+            Hover over the graph to see the breakdown between principle vs interest for each month of the loan.
+          </p>
+          <BalanceChart schedule={schedule} height={300} />
+        </CollapsibleContainer>
+      </div>
+
+      <div className="mt-6">
+        <CollapsibleContainer
+          title="Detailed Repayment Breakdown"
+          collapsible
+          defaultOpen={false}
+          padded={false}
+          accent="blue"
+        >
+          <ToggleGroup
+            options={breakdownViewOptions}
+            value={breakdownView}
+            onChange={onBreakdownViewChange}
+          />
+          <div className="max-h-[360px] overflow-y-auto">
+            <table className="mt-3 w-full table-fixed text-left text-xs text-slate-600 dark:text-slate-200">
+              <thead>
+                <tr className="text-slate-400">
+                  <th className="pb-2 pr-3">{breakdownView === 'monthly' ? 'Month' : 'Year'}</th>
+                  <th className="pb-2 pl-4">Principle</th>
+                  <th className="pb-2 pl-4">Interest</th>
+                  <th className="pb-2 text-right">Loan remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {breakdownRows.map((row, index) => (
+                  <tr key={`${row.label}-${index}`} className="border-t border-slate-100 dark:border-slate-800">
+                    <td className="py-2 pr-3 font-semibold">
+                      {breakdownView === 'monthly' ? (
+                        <>
+                          <div>{row.monthLabel}</div>
+                          <div className="text-[11px] text-slate-400">{row.yearLabel}</div>
+                        </>
+                      ) : (
+                        <div>{row.label}</div>
+                      )}
+                    </td>
+                    <td className="py-2 pl-4">
+                      {formatCurrency(row.principal)}
+                      <div className="text-[10px] text-slate-400">{row.principalPct?.toFixed(0)}%</div>
+                    </td>
+                    <td className="py-2 pl-4">
+                      {formatCurrency(row.interest)}
+                      <div className="text-[10px] text-slate-400">{row.interestPct?.toFixed(0)}%</div>
+                    </td>
+                    <td className="py-2 text-right">{formatCurrency(row.balance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CollapsibleContainer>
       </div>
