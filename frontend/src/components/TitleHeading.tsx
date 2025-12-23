@@ -1,7 +1,8 @@
 import React from 'react';
-import { InfoIcon, SunIcon } from './icons';
+import { InfoIcon, MoonIcon, SunIcon } from './icons';
 
 export const TitleHeading: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
   const [isCondensed, setIsCondensed] = React.useState(false);
   const DEFAULT_DISCLAIMER = "There's always a disclaimer";
   const [disclaimer, setDisclaimer] = React.useState(DEFAULT_DISCLAIMER);
@@ -112,13 +113,19 @@ export const TitleHeading: React.FC = () => {
           )}
         </div>
 
-        <div
-          className={`relative flex flex-shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-all ${
+        <button
+          type="button"
+          onClick={() => setIsDarkMode((prev) => !prev)}
+          className={`relative flex flex-shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-all hover:bg-white/20 ${
             isCondensed ? 'h-7 w-7' : 'h-14 w-14'
           }`}
         >
-          <SunIcon className={isCondensed ? 'h-3 w-3 text-amber-300' : 'h-6 w-6 text-amber-300'} />
-        </div>
+          {isDarkMode ? (
+            <MoonIcon className={isCondensed ? 'h-3 w-3 text-blue-100' : 'h-6 w-6 text-blue-100'} />
+          ) : (
+            <SunIcon className={isCondensed ? 'h-3 w-3 text-amber-300' : 'h-6 w-6 text-amber-300'} />
+          )}
+        </button>
         </div>
       </div>
     </header>
