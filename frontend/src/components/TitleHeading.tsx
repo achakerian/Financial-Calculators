@@ -117,13 +117,13 @@ export const TitleHeading: React.FC = () => {
           type="button"
           onClick={() => setIsDarkMode((prev) => !prev)}
           className={`relative flex flex-shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-all hover:bg-white/20 ${
-            isCondensed ? 'h-7 w-7' : 'h-14 w-14'
+            isCondensed ? 'h-5.5 w-5.5' : 'h-11 w-11'
           }`}
         >
           {isDarkMode ? (
-            <MoonIcon className={isCondensed ? 'h-3 w-3 text-blue-100' : 'h-6 w-6 text-blue-100'} />
+            <MoonIcon className={isCondensed ? 'h-2.5 w-2.5 text-blue-100' : 'h-5 w-5 text-blue-100'} />
           ) : (
-            <SunIcon className={isCondensed ? 'h-3 w-3 text-amber-300' : 'h-6 w-6 text-amber-300'} />
+            <SunIcon className={isCondensed ? 'h-2.5 w-2.5 text-amber-300' : 'h-5 w-5 text-amber-300'} />
           )}
         </button>
         </div>
