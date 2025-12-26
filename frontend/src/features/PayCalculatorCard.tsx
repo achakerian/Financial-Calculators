@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ToggleGroup, ToggleOption } from '../components/ToggleGroup';
 import { CurrencyInput } from '../components/inputs';
-import { formatCurrency } from '../lib/formatters';
+import { formatCurrency, formatPercent } from '../lib/formatters';
 import { CollapsibleContainer } from '../components/CollapsibleContainer';
 import { IncomeBreakdownChart } from '../graphs/IncomeBreakdownChart';
 
@@ -66,15 +66,6 @@ const frequencyLabels: Record<Frequency, string> = {
 };
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
-
-const fmtAUD0 = (n: number) =>
-  new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: 'AUD',
-    maximumFractionDigits: 0,
-  }).format(Number.isFinite(n) ? n : 0);
-
-const percentText = (value: number) => `${(clamp(value, 0, 1) * 100).toFixed(1)}%`;
 
 // Calculate the percentage through the current financial year (July 1 - June 30)
 const getFinancialYearProgress = (): number => {
@@ -202,7 +193,7 @@ const incomeTableColumns: Array<{ key: Frequency; label: string }> = [
 
 export const PayCalculatorCard: React.FC = () => {
   const [inputs, setInputs] = useState<Inputs>({
-    taxYear: '2024-25',
+    taxYear: '2025-26',
     annualSalary: 90000,
     frequency: 'fortnightly',
     hasHELP: false,
@@ -389,8 +380,8 @@ export const PayCalculatorCard: React.FC = () => {
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-slate-700 dark:text-dark-text">{row.label}</span>
                     <div className="flex gap-4">
-                      <span className="min-w-[80px] text-right font-semibold text-slate-900 dark:text-white">{fmtAUD0(row.perPeriod)}</span>
-                      <span className="min-w-[80px] text-right font-semibold text-slate-900 dark:text-white">{fmtAUD0(row.annual)}</span>
+                      <span className="min-w-[80px] text-right font-semibold text-slate-900 dark:text-white">{formatCurrency(row.perPeriod)}</span>
+                      <span className="min-w-[80px] text-right font-semibold text-slate-900 dark:text-white">{formatCurrency(row.annual)}</span>
                     </div>
                   </div>
                 </div>
@@ -415,13 +406,13 @@ export const PayCalculatorCard: React.FC = () => {
               <div>
                 <p className="text-[11px] capitalize text-slate-500 dark:text-dark-muted">{firstColumnLabel}</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {fmtAUD0(firstColumnData.net)}
+                  {formatCurrency(firstColumnData.net)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-[11px] text-slate-500 dark:text-dark-muted">Annual</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {fmtAUD0(annualBreakdownData.net)}
+                  {formatCurrency(annualBreakdownData.net)}
                 </p>
               </div>
             </div>
@@ -435,19 +426,19 @@ export const PayCalculatorCard: React.FC = () => {
               <div className="flex-1 text-center">
                 <p className="text-xs text-slate-500 dark:text-dark-muted">Gross Pay</p>
                 <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                  {fmtAUD0(results.taxableAnnual)}
+                  {formatCurrency(results.taxableAnnual)}
                 </p>
               </div>
               <div className="flex-1 text-center">
                 <p className="text-xs text-slate-500 dark:text-dark-muted">Net Pay</p>
                 <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                  {fmtAUD0(results.netAnnual)}
+                  {formatCurrency(results.netAnnual)}
                 </p>
               </div>
               <div className="flex-1 text-center">
                 <p className="text-xs text-slate-500 dark:text-dark-muted">Nominal Tax Rate</p>
                 <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                  {percentText(results.effectiveRate)}
+                  {formatPercent(results.effectiveRate)}
                 </p>
               </div>
             </div>
