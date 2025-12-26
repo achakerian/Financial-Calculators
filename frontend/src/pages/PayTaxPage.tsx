@@ -12,7 +12,7 @@ const items: FeatureAccordionItem[] = [
   },
   {
     badge: 'Prep',
-    title: 'Tax checklist & deductions',
+    title: '🚧 Tax checklist & deductions (in development)',
     content: <TaxChecklistSection />,
   },
 ];
