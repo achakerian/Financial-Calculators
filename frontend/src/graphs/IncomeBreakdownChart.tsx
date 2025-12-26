@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatCurrency } from '../lib/formatters';
 
 interface IncomeBreakdownChartProps {
   netPay: number;
@@ -69,13 +70,6 @@ export const IncomeBreakdownChart: React.FC<IncomeBreakdownChartProps> = ({
     data.push({ name: 'HELP / HECS', value: helpHecs, color: COLORS.helpHecs });
   }
 
-  const formatValue = (value: number) => {
-    return new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: 'AUD',
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   // Calculate percentages that sum to exactly 100%
   const percentages = React.useMemo(() => {
@@ -121,7 +115,7 @@ export const IncomeBreakdownChart: React.FC<IncomeBreakdownChartProps> = ({
             {payload[0].name}
           </p>
           <p className="text-sm text-slate-600 dark:text-dark-text">
-            {formatValue(payload[0].value)} ({formatPercent(payload[0].value, dataIndex)})
+            {formatCurrency(payload[0].value)} ({formatPercent(payload[0].value, dataIndex)})
           </p>
         </div>
       );
@@ -144,7 +138,7 @@ export const IncomeBreakdownChart: React.FC<IncomeBreakdownChartProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-900 dark:text-white">
-                {formatValue(entry.payload.value)}
+                {formatCurrency(entry.payload.value)}
               </span>
               <span className="text-slate-500 dark:text-dark-muted">
                 {formatPercent(entry.payload.value, index)}
