@@ -235,7 +235,7 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
   return (
     <div
       style={{
-        background: '#f9fafb',
+        background: 'var(--chart-tooltip-bg)',
         borderRadius: 8,
         padding: '0.6rem 0.9rem',
         boxShadow: '0 6px 18px rgba(15,23,42,0.25)',
@@ -247,7 +247,7 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
         style={{
           fontWeight: 600,
           marginBottom: 6,
-          color: '#111827'
+          color: 'var(--chart-tooltip-text)'
         }}
       >
         {heading}
@@ -257,13 +257,13 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
         <div
           style={{
             fontSize: '0.8rem',
-            color: '#6b7280',
+            color: 'var(--chart-tooltip-label)',
             marginBottom: 2
           }}
         >
           Repayment amount
         </div>
-        <div style={{ fontWeight: 600, color: '#111827' }}>
+        <div style={{ fontWeight: 600, color: 'var(--chart-tooltip-text)' }}>
           {formatCurrency(repayment)} (100%)
         </div>
       </div>
@@ -273,14 +273,14 @@ const BalanceTooltip: React.FC<TooltipProps<number, string>> = ({
         <span style={{ fontWeight: 600 }}>
           {formatCurrency(interest)}
         </span>{' '}
-        <span style={{ color: '#9ca3af' }}>({Math.round(interestPct)}%)</span>
+        <span style={{ color: 'var(--chart-tooltip-label)' }}>({Math.round(interestPct)}%)</span>
       </div>
       <div style={{ color: '#9cc4ff' }}>
         Principle reduction:{' '}
         <span style={{ fontWeight: 600 }}>
           {formatCurrency(principal)}
         </span>{' '}
-        <span style={{ color: '#9ca3af' }}>({Math.round(principalPct)}%)</span>
+        <span style={{ color: 'var(--chart-tooltip-label)' }}>({Math.round(principalPct)}%)</span>
       </div>
     </div>
   );
