@@ -13,10 +13,10 @@ const SuperComingSoonContent: React.FC = () => {
       </div>
 
       <div className="rounded-3xl border-2 border-dashed border-slate-400 bg-white/80 p-8 text-center text-slate-700 shadow-lg backdrop-blur dark:border-dark-border dark:bg-dark-surfaceAlt/80 dark:text-dark-text">
-        <p className="text-sm font-semibold text-slate-500 dark:text-dark-muted">(Under Construction)</p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-dark-text">Super tools coming soon</h1>
+        <p className="text-sm font-semibold text-slate-500 dark:text-dark-muted">🚧 (Under Construction)</p>
+        <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-dark-text">🚧 Super tools coming soon</h1>
         <div className="mt-6 rounded-2xl border border-slate-200/80 p-5 text-left text-sm dark:border-dark-border">
-          <p className="text-sm font-semibold text-brand-500 dark:text-brand-accentBright">Coming soon</p>
+          <p className="text-sm font-semibold text-brand-500 dark:text-brand-accentBright">🚧 Coming soon</p>
           <ul className="mt-2 list-disc space-y-1 pl-4">
             <li>Super Guarantee (11.5%) checker</li>
             <li>Concessional &amp; non-concessional caps</li>
@@ -38,7 +38,7 @@ const SuperComingSoonContent: React.FC = () => {
 const items: FeatureAccordionItem[] = [
   {
     badge: 'Super',
-    title: 'Super tools (in development)',
+    title: '🚧 Super tools (in development)',
     content: <SuperComingSoonContent />,
   },
 ];
