@@ -202,7 +202,7 @@ const incomeTableColumns: Array<{ key: Frequency; label: string }> = [
 
 export const PayCalculatorCard: React.FC = () => {
   const [inputs, setInputs] = useState<Inputs>({
-    taxYear: '2024-25',
+    taxYear: '2025-26',
     annualSalary: 90000,
     frequency: 'fortnightly',
     hasHELP: false,
