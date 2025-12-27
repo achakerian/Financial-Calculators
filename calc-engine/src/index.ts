@@ -81,6 +81,73 @@ export interface ExtraRule {
   endMonth?: number;
 }
 
+export interface LoanComparisonInputs {
+  // Input amounts (Scenario B split amounts)
+  fullMortgageAmount: number;      // Mortgage portion in split scenario
+  personalLoanAmount: number;      // Personal loan portion in split scenario
+
+  // Note: Scenario A calculates as (fullMortgageAmount + personalLoanAmount)
+
+  // Rates and terms
+  mortgageRate: number;
+  mortgageTermYears: number;
+  personalLoanRate: number;
+  personalLoanTermYears: number;
+
+  // Common settings
+  frequency: RepaymentFrequency;
+  repaymentType: RepaymentType;
+  repaymentStrategy: RepaymentStrategy;
+  startDate: string;
+}
+
+export interface LoanComparisonSummary {
+  // Total amount being financed
+  totalAmount: number;  // fullMortgageAmount + personalLoanAmount
+
+  // Scenario A: Full mortgage (for totalAmount)
+  fullMortgagePayment: number;
+  fullMortgageTotalInterest: number;
+  fullMortgageTotalPaid: number;
+  fullMortgagePayoffDate: string;
+
+  // Scenario B: Split - Mortgage component
+  splitMortgageAmount: number;
+  splitMortgagePayment: number;
+  splitMortgageTotalInterest: number;
+  splitMortgageTotalPaid: number;
+  splitMortgagePayoffDate: string;
+
+  // Scenario B: Split - Personal loan component
+  splitPersonalAmount: number;
+  splitPersonalPayment: number;
+  splitPersonalTotalInterest: number;
+  splitPersonalTotalPaid: number;
+  splitPersonalPayoffDate: string;
+
+  // Scenario B: Combined totals
+  splitCombinedPaymentInitial: number;
+  splitCombinedTotalInterest: number;
+  splitCombinedTotalPaid: number;
+
+  // Differences (Scenario B - Scenario A)
+  monthlyPaymentDifferenceInitial: number;
+  totalInterestDifference: number;
+  totalPaidDifference: number;
+
+  // Monthly payment after personal loan ends
+  splitMortgageOnlyPayment: number;  // What remains when personal loan is paid off
+  monthlyPaymentDifferenceAfterPersonal: number;  // Difference after personal loan ends
+}
+
+export interface LoanComparisonResult {
+  fullMortgage: AmortisationResult;
+  splitMortgage: AmortisationResult;
+  splitPersonalLoan: AmortisationResult;
+  splitCombinedSchedule: PeriodRow[];
+  summary: LoanComparisonSummary;
+}
+
 function frequencyToPeriodsPerYear(frequency: RepaymentFrequency): number {
   if (frequency === 'weekly') return 52;
   if (frequency === 'fortnightly') return 26;
@@ -576,6 +643,146 @@ export function estimateBorrowingCapacity(
     totalOtherDebt,
     limitingFactors,
     capacityByRate
+  };
+}
+
+/**
+ * Merges two loan schedules by summing all fields period by period
+ */
+function mergeLoanSchedules(
+  schedule1: PeriodRow[],
+  schedule2: PeriodRow[]
+): PeriodRow[] {
+  const length = Math.max(schedule1.length, schedule2.length);
+  const merged: PeriodRow[] = [];
+
+  for (let i = 0; i < length; i++) {
+    const row1 = schedule1[i];
+    const row2 = schedule2[i];
+    const date = (row1?.date ?? row2?.date) as string;
+
+    merged.push({
+      periodIndex: i,
+      date,
+      openingBalance: (row1?.openingBalance ?? 0) + (row2?.openingBalance ?? 0),
+      closingBalance: (row1?.closingBalance ?? 0) + (row2?.closingBalance ?? 0),
+      principalPaid: (row1?.principalPaid ?? 0) + (row2?.principalPaid ?? 0),
+      interestCharged: (row1?.interestCharged ?? 0) + (row2?.interestCharged ?? 0),
+      extraRepayment: (row1?.extraRepayment ?? 0) + (row2?.extraRepayment ?? 0),
+      feesApplied: (row1?.feesApplied ?? 0) + (row2?.feesApplied ?? 0),
+      offsetBalance: (row1?.offsetBalance ?? 0) + (row2?.offsetBalance ?? 0)
+    });
+  }
+
+  return merged;
+}
+
+/**
+ * Compares two loan financing scenarios:
+ * - Scenario A: Finance entire amount as single mortgage
+ * - Scenario B: Split between mortgage and personal loan
+ *
+ * Returns detailed comparison including individual loan results,
+ * combined schedule for Scenario B, and calculated differences.
+ */
+export function compareMortgageVsPersonalLoan(
+  inputs: LoanComparisonInputs
+): LoanComparisonResult {
+  // CORRECTED LOGIC:
+  // Total purchase amount = mortgageAmount + personalLoanAmount
+  // Scenario A: Finance entire amount as single mortgage
+  // Scenario B: Split between mortgage and personal loan
+
+  const totalAmount = inputs.fullMortgageAmount + inputs.personalLoanAmount;
+
+  // 1. Generate Scenario A (Full Mortgage for TOTAL amount)
+  const fullMortgage = generateAmortisation({
+    amount: totalAmount,  // Use total of both amounts
+    annualRate: inputs.mortgageRate,
+    years: inputs.mortgageTermYears,
+    frequency: inputs.frequency,
+    repaymentType: inputs.repaymentType,
+    repaymentStrategy: inputs.repaymentStrategy,
+    startDate: inputs.startDate
+  });
+
+  // 2. Generate Scenario B - Mortgage Component
+  const splitMortgage = generateAmortisation({
+    amount: inputs.fullMortgageAmount,  // Use mortgage amount as-is
+    annualRate: inputs.mortgageRate,
+    years: inputs.mortgageTermYears,
+    frequency: inputs.frequency,
+    repaymentType: inputs.repaymentType,
+    repaymentStrategy: inputs.repaymentStrategy,
+    startDate: inputs.startDate
+  });
+
+  // 3. Generate Scenario B - Personal Loan Component
+  const splitPersonalLoan = generateAmortisation({
+    amount: inputs.personalLoanAmount,
+    annualRate: inputs.personalLoanRate,
+    years: inputs.personalLoanTermYears,
+    frequency: inputs.frequency,
+    repaymentType: inputs.repaymentType,
+    repaymentStrategy: inputs.repaymentStrategy,
+    startDate: inputs.startDate
+  });
+
+  // 4. Merge Scenario B schedules
+  const splitCombinedSchedule = mergeLoanSchedules(
+    splitMortgage.schedule,
+    splitPersonalLoan.schedule
+  );
+
+  // 5. Calculate all summary metrics
+  const summary: LoanComparisonSummary = {
+    // Total
+    totalAmount,
+
+    // Scenario A
+    fullMortgagePayment: fullMortgage.summary.regularPayment,
+    fullMortgageTotalInterest: fullMortgage.summary.totalInterest,
+    fullMortgageTotalPaid: fullMortgage.summary.totalPaid,
+    fullMortgagePayoffDate: fullMortgage.summary.payoffDate,
+
+    // Scenario B - Mortgage
+    splitMortgageAmount: inputs.fullMortgageAmount,
+    splitMortgagePayment: splitMortgage.summary.regularPayment,
+    splitMortgageTotalInterest: splitMortgage.summary.totalInterest,
+    splitMortgageTotalPaid: splitMortgage.summary.totalPaid,
+    splitMortgagePayoffDate: splitMortgage.summary.payoffDate,
+
+    // Scenario B - Personal
+    splitPersonalAmount: inputs.personalLoanAmount,
+    splitPersonalPayment: splitPersonalLoan.summary.regularPayment,
+    splitPersonalTotalInterest: splitPersonalLoan.summary.totalInterest,
+    splitPersonalTotalPaid: splitPersonalLoan.summary.totalPaid,
+    splitPersonalPayoffDate: splitPersonalLoan.summary.payoffDate,
+
+    // Scenario B - Combined
+    splitCombinedPaymentInitial: splitMortgage.summary.regularPayment + splitPersonalLoan.summary.regularPayment,
+    splitCombinedTotalInterest: splitMortgage.summary.totalInterest + splitPersonalLoan.summary.totalInterest,
+    splitCombinedTotalPaid: splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid,
+
+    // Differences (existing)
+    monthlyPaymentDifferenceInitial:
+      (splitMortgage.summary.regularPayment + splitPersonalLoan.summary.regularPayment) - fullMortgage.summary.regularPayment,
+    totalInterestDifference:
+      (splitMortgage.summary.totalInterest + splitPersonalLoan.summary.totalInterest) - fullMortgage.summary.totalInterest,
+    totalPaidDifference:
+      (splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid) - fullMortgage.summary.totalPaid,
+
+    // Monthly payment after personal loan ends
+    splitMortgageOnlyPayment: splitMortgage.summary.regularPayment,
+    monthlyPaymentDifferenceAfterPersonal: splitMortgage.summary.regularPayment - fullMortgage.summary.regularPayment
+  };
+
+  return {
+    fullMortgage,
+    splitMortgage,
+    splitPersonalLoan,
+    splitCombinedSchedule,
+    summary
   };
 }
 

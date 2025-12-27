@@ -3,12 +3,18 @@ import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAcc
 import { PageContainer } from '../components/PageContainer';
 import { LoanCalculatorCard } from '../features/LoanCalculatorCard';
 import { BorrowingPowerSection } from '../features/BorrowingPowerSection';
+import { LoanComparisonCard } from '../features/LoanComparisonCard';
 
 const items: FeatureAccordionItem[] = [
   {
     badge: 'Mortgage',
     title: 'Loan Calculator',
     content: <LoanCalculatorCard />,
+  },
+  {
+    badge: 'Compare',
+    title: 'Mortgage vs Personal Loan',
+    content: <LoanComparisonCard />,
   },
   {
     badge: 'Capacity',
