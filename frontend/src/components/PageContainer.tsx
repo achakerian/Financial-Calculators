@@ -22,15 +22,35 @@ export const PageContainer: React.FC<PageContainerProps> = ({
   className = '',
   borderColor
 }) => {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useLayoutEffect(() => {
+    const updateStripLeft = () => {
+      if (typeof window === 'undefined') return;
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const styles = window.getComputedStyle(el);
+      const padLeft = parseFloat(styles.paddingLeft || '0');
+      const GAP_PX = 25; // visual gap between container and vertical strip
+      const leftPx = Math.max(0, rect.left + padLeft - GAP_PX);
+      document.documentElement.style.setProperty('--page-strip-left', `${leftPx}px`);
+    };
+
+    updateStripLeft();
+    window.addEventListener('resize', updateStripLeft);
+    return () => window.removeEventListener('resize', updateStripLeft);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative min-h-screen">
       {borderColor && (
         <div
-          className={`fixed left-4 top-0 h-full w-1 ${borderColor} opacity-40`}
-          style={{ zIndex: 1 }}
+          className={`fixed top-0 h-screen w-1 ${borderColor} opacity-40`}
+          style={{ zIndex: 1, left: 'var(--page-strip-left, 24px)' }}
         />
       )}
-      <div className={`mx-auto max-w-md px-6 pb-32 pt-4 ${className}`.trim()}>
+      <div ref={containerRef} className={`mx-auto max-w-md px-6 pb-32 pt-4 ${className}`.trim()}>
         {children}
       </div>
     </div>

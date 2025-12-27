@@ -171,6 +171,11 @@ export const LoanCalculatorCard: React.FC = () => {
   const originalCompletionDateLabel = formatCompletionLabel(payoffDateOriginal);
   const updatedCompletionDateLabel = formatCompletionLabel(payoffDateUpdated);
 
+  // Calculate total interest for original vs updated scenarios
+  const originalTotalInterest = result.summary.totalInterest;
+  const updatedTotalInterest = adjustedSchedule.reduce((sum, row) => sum + row.interestCharged, 0);
+  const interestReduced = originalTotalInterest - updatedTotalInterest;
+
   const handleAmountChange = (value: number) => {
     setLoanAmount(value);
   };
@@ -245,6 +250,9 @@ export const LoanCalculatorCard: React.FC = () => {
       ratePaymentSummaries={ratePaymentSummaries}
       originalCompletionDateLabel={originalCompletionDateLabel}
       updatedCompletionDateLabel={updatedCompletionDateLabel}
+      originalTotalInterest={originalTotalInterest}
+      updatedTotalInterest={updatedTotalInterest}
+      interestReduced={interestReduced}
     />
   );
 };

@@ -78,6 +78,9 @@ interface LoanCalculatorViewProps {
   ratePaymentSummaries: RatePaymentSummary[];
   originalCompletionDateLabel: string;
   updatedCompletionDateLabel: string;
+  originalTotalInterest: number;
+  updatedTotalInterest: number;
+  interestReduced: number;
 }
 
 export const LoanCalculatorView: React.FC<LoanCalculatorViewProps> = ({
@@ -106,6 +109,9 @@ export const LoanCalculatorView: React.FC<LoanCalculatorViewProps> = ({
   ratePaymentSummaries,
   originalCompletionDateLabel,
   updatedCompletionDateLabel,
+  originalTotalInterest,
+  updatedTotalInterest,
+  interestReduced,
 }) => {
   const shortLabel = frequencies.find((option) => option.id === frequency)?.short ?? 'wk';
 
@@ -378,6 +384,7 @@ export const LoanCalculatorView: React.FC<LoanCalculatorViewProps> = ({
                   <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-dark-border dark:bg-transparent dark:text-dark-muted">
                     <p>Original completion date: {originalCompletionDateLabel}</p>
                     <p>Updated completion date: {updatedCompletionDateLabel}</p>
+                    <p>Interest saved: {formatCurrency(interestReduced)}</p>
                   </div>
                 </div>
               );
