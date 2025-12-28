@@ -1,5 +1,28 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAccordion';
+
+const futureFeatures: FeatureAccordionItem[] = [
+  {
+    badge: 'Coming Soon',
+    title: 'Personalised Insights Panel',
+    content: (
+      <div className="space-y-4 text-sm text-slate-700 dark:text-dark-text">
+        <p>
+          We're currently developing a personalised insights panel that allows you to securely log
+          in and upload financial information such as bank statements, loans and repayments,
+          expenses, superannuation and HECS/HELP details. This will enable a more focused,
+          tailored view of your overall financial position.
+        </p>
+        <p>
+          While the platform will not provide personalised financial advice, it will present your
+          information in a clear, structured way to help you better understand your finances and
+          support more informed discussions with your accountant or financial adviser.
+        </p>
+      </div>
+    ),
+  },
+];
 
 export const HomePage: React.FC = () => {
   return (
@@ -50,6 +73,11 @@ export const HomePage: React.FC = () => {
             complete than a train stop, and provide clear insights without requiring an accounting
             degree or a strong emotional support coffee.
           </p>
+        </div>
+
+        {/* Future Features - Collapsible */}
+        <div className="border-t border-slate-200 dark:border-dark-border pt-6">
+          <FeatureAccordion items={futureFeatures} initialOpen={null} />
         </div>
       </div>
     </PageContainer>
