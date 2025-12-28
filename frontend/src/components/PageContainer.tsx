@@ -9,10 +9,13 @@ interface PageContainerProps {
 /**
  * Standard page wrapper component
  *
- * Provides consistent padding across all pages:
+ * Provides consistent padding and responsive max-width across all pages:
  * - px-6 (24px horizontal) - Standard page margins
  * - pt-4 (16px top) - Tight spacing below sticky header
- * - pb-32 (128px bottom) - Extra space above bottom navigation
+ * - pb-6 (24px bottom) - Minimal space (MainLayout provides pb-20 for BottomNav)
+ * - max-w-md (448px) - Mobile-first narrow width (mobile portrait)
+ * - lg:max-w-2xl (672px) - Expands on tablet/desktop (≥1024px)
+ * - xl:max-w-4xl (896px) - Further expands on wide desktops (≥1280px)
  * - borderColor (optional) - Adds a full-height left border with the specified color
  *
  * @see DESIGN_SYSTEM.md - Spacing & Layout section
@@ -43,14 +46,14 @@ export const PageContainer: React.FC<PageContainerProps> = ({
   }, []);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative">
       {borderColor && (
         <div
           className={`fixed top-0 h-screen w-1 ${borderColor} opacity-40`}
           style={{ zIndex: 1, left: 'var(--page-strip-left, 24px)' }}
         />
       )}
-      <div ref={containerRef} className={`mx-auto max-w-md px-6 pb-32 pt-4 ${className}`.trim()}>
+      <div ref={containerRef} className={`mx-auto max-w-md px-6 pb-6 pt-4 lg:max-w-2xl xl:max-w-4xl ${className}`.trim()}>
         {children}
       </div>
     </div>

@@ -103,7 +103,7 @@ export const YearSpecificTaxInfo: React.FC = () => {
             id="tax-year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value as TaxYear)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 [color-scheme:light] dark:[color-scheme:dark]"
           >
             <option value="2025-26">2025–26 (from 1 July 2025)</option>
             <option value="2024-25">2024–25</option>

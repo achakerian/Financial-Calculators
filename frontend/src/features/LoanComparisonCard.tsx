@@ -151,7 +151,7 @@ export const LoanComparisonCard: React.FC = () => {
         </div>
 
         {/* Scenarios within same container */}
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-3">
           <div className="rounded-2xl border border-slate-200 p-4 dark:border-dark-border">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">Mortgage {formatCurrency(comparison.summary.totalAmount)}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Scenario A</p>

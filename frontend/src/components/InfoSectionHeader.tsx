@@ -25,10 +25,10 @@ export const InfoSectionHeader: React.FC<InfoSectionHeaderProps> = ({
         <select
           value={year}
           onChange={(e) => onYearChange(e.target.value)}
-          className="rounded-2xl border border-slate-300 bg-transparent px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none dark:border-dark-border dark:text-white"
+          className="rounded-2xl border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 [color-scheme:light] dark:[color-scheme:dark]"
         >
           {years.map((y) => (
-            <option key={y} value={y} className="text-slate-800 dark:text-white">
+            <option key={y} value={y}>
               {y}
             </option>
           ))}

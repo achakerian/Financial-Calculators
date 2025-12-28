@@ -1,20 +1,20 @@
 import React from 'react';
+import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAccordion';
 import { PageContainer } from '../components/PageContainer';
+import { SuperComingSoonSection } from '../features/SuperComingSoonSection';
+
+const items: FeatureAccordionItem[] = [
+  {
+    badge: 'Super',
+    title: '🚧 Superannuation Calculator (in development)',
+    content: <SuperComingSoonSection />,
+  },
+];
 
 export const SuperPage: React.FC = () => {
   return (
     <PageContainer borderColor="bg-green-500">
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-6xl">🚧</div>
-          <h1 className="mb-2 text-2xl font-bold text-slate-800 dark:text-white">
-            Page Under Construction
-          </h1>
-          <p className="text-slate-600 dark:text-dark-muted">
-            This page is currently being built. Check back soon!
-          </p>
-        </div>
-      </div>
+      <FeatureAccordion items={items} initialOpen={null} />
     </PageContainer>
   );
 };

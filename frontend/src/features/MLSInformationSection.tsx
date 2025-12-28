@@ -3,13 +3,22 @@ import { InfoSectionHeader } from '../components/InfoSectionHeader';
 import { formatCurrency } from '../lib/formatters';
 
 export const MLSInformationSection: React.FC = () => {
-  const years = ['FY2024-25', 'FY2025-26'];
+  const years = ['FY2025-26', 'FY2024-25', 'FY2023-24', 'FY2022-23', 'FY2021-22', 'FY2020-21'];
   const [year, setYear] = React.useState<string>(years[0]);
 
   const DATA: Record<string, {
     thresholds: { single: number; family: number; perDependent: number };
     brackets: { singleMax: number | null; familyMax: number | null; rate: number }[];
   }> = React.useMemo(() => ({
+    'FY2025-26': {
+      thresholds: { single: 101_000, family: 202_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 101_000, familyMax: 202_000, rate: 0 },
+        { singleMax: 118_000, familyMax: 236_000, rate: 0.01 },
+        { singleMax: 158_000, familyMax: 316_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
     'FY2024-25': {
       thresholds: { single: 97_000, family: 194_000, perDependent: 1_500 },
       brackets: [
@@ -19,12 +28,39 @@ export const MLSInformationSection: React.FC = () => {
         { singleMax: null, familyMax: null, rate: 0.015 },
       ],
     },
-    'FY2025-26': {
-      thresholds: { single: 97_000, family: 194_000, perDependent: 1_500 },
+    'FY2023-24': {
+      thresholds: { single: 93_000, family: 186_000, perDependent: 1_500 },
       brackets: [
-        { singleMax: 97_000, familyMax: 194_000, rate: 0 },
-        { singleMax: 113_000, familyMax: 226_000, rate: 0.01 },
-        { singleMax: 151_000, familyMax: 302_000, rate: 0.0125 },
+        { singleMax: 93_000, familyMax: 186_000, rate: 0 },
+        { singleMax: 108_000, familyMax: 216_000, rate: 0.01 },
+        { singleMax: 144_000, familyMax: 288_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
+    'FY2022-23': {
+      thresholds: { single: 90_000, family: 180_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 90_000, familyMax: 180_000, rate: 0 },
+        { singleMax: 105_000, familyMax: 210_000, rate: 0.01 },
+        { singleMax: 140_000, familyMax: 280_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
+    'FY2021-22': {
+      thresholds: { single: 90_000, family: 180_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 90_000, familyMax: 180_000, rate: 0 },
+        { singleMax: 105_000, familyMax: 210_000, rate: 0.01 },
+        { singleMax: 140_000, familyMax: 280_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
+    'FY2020-21': {
+      thresholds: { single: 90_000, family: 180_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 90_000, familyMax: 180_000, rate: 0 },
+        { singleMax: 105_000, familyMax: 210_000, rate: 0.01 },
+        { singleMax: 140_000, familyMax: 280_000, rate: 0.0125 },
         { singleMax: null, familyMax: null, rate: 0.015 },
       ],
     },
@@ -57,6 +93,7 @@ export const MLSInformationSection: React.FC = () => {
         years={years}
         year={year}
         onYearChange={setYear}
+        showTitle={false}
       />
 
       <div className="space-y-3">

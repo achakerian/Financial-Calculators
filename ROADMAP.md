@@ -2,7 +2,7 @@
 
 _Last updated: 2025-12-28_
 
-**Status:** 15/50 complete (30%) • **Focus:** Calculation engine & product features
+**Status:** 16/50 complete (32%) • **Focus:** Calculation engine & product features
 
 **Legend:** ✅ Done | 🟡 Partial | ❌ Not started | 🎨 Needs design | ⚠️ Needs decision
 
@@ -303,6 +303,22 @@ Small (i) icons next to technical terms:
 Keyboard navigation, visible focus rings, logical tab order
 - **Files:** All input components
 - **Safe:** A11y improvement only
+
+### TODO-2.16: Responsive Layout with Orientation Detection 🟡
+**Current:** Basic responsive breakpoints optimized for split-screen desktop
+**Incomplete:** Needs orientation-based layout adjustments for better landscape mobile/tablet experience
+- **Current Implementation:**
+  - Mobile portrait (< 1024px): max-w-md (448px)
+  - Tablet/split desktop (≥ 1024px): max-w-2xl (672px)
+  - Wide desktop (≥ 1280px): max-w-4xl (896px)
+- **Missing:** CSS orientation media queries for landscape-specific optimizations
+- **Files:**
+  - `frontend/src/components/PageContainer.tsx:56` (implemented basic responsive)
+- **Needs:**
+  - Orientation detection (@media (orientation: landscape))
+  - Tablet-specific breakpoints
+  - Grid layout adjustments for landscape mode
+- **Safe:** Progressive enhancement only
 
 ### TODO-3.9: Shared Types Package ❌
 Create `@financial-calc/types` for frontend/calc-engine/api
