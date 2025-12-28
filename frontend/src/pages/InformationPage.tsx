@@ -1,19 +1,19 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { MLSInformationSection } from '../features/MLSInformationSection';
 
 export const InformationPage: React.FC = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <PageContainer borderColor="bg-blue-500">
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-6xl">🚧</div>
-          <h1 className="mb-2 text-2xl font-bold text-slate-800 dark:text-white">
-            Page Under Construction
-          </h1>
-          <p className="text-slate-600 dark:text-dark-muted">
-            This page is currently being built. Check back soon!
-          </p>
-        </div>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <h1 className="mb-6 text-3xl font-bold text-slate-800 dark:text-white">
+          Tax Information
+        </h1>
+        <MLSInformationSection />
       </div>
     </PageContainer>
   );

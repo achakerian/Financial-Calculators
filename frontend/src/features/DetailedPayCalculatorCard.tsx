@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { ToggleGroup, ToggleOption } from '../components/ToggleGroup';
-import { CurrencyInput } from '../components/inputs';
+import { CurrencyInput, NumberInput } from '../components/inputs';
 import { formatCurrency, formatPercent, toNumberOrZero } from '../lib/formatters';
 import { Tooltip } from '../components/Tooltip';
 import { InfoTooltipWithLink } from '../components/InfoTooltipWithLink';
-import { calculatePaySummary, calculateLITO, calculateMedicareSurcharge } from '../../../calc-engine/src';
+import { calculatePaySummary, calculateLITO, calculateMedicareSurcharge, type FamilyStatus, type TaxYearId } from '../../../calc-engine/src';
 
 type Frequency = 'weekly' | 'fortnightly' | 'monthly' | 'annually' | 'projection';
-type TaxYear = '2024-25' | '2025-26';
 type TaxResidency = 'resident' | 'non-resident' | 'whm';
 
 type IncomeEntry = {
@@ -38,12 +37,14 @@ type DeductionEntry = {
 };
 
 type Inputs = {
-  taxYear: TaxYear;
+  taxYear: TaxYearId;
   annualSalary: number;
   frequency: Frequency;
   hasHELP: boolean;
   taxResidency: TaxResidency;
   hasPrivateHealth: boolean;
+  familyStatus: FamilyStatus;
+  dependents: number;
 };
 
 const createId = () =>
@@ -88,9 +89,13 @@ const frequencyOptions: ToggleOption<Frequency>[] = [
   { label: 'Projection', value: 'projection' },
 ];
 
-const taxYearOptions: Array<{ label: string; value: TaxYear }> = [
-  { label: '2024–25', value: '2024-25' },
+const taxYearOptions: Array<{ label: string; value: TaxYearId }> = [
   { label: '2025–26', value: '2025-26' },
+  { label: '2024–25', value: '2024-25' },
+  { label: '2023–24', value: '2023-24' },
+  { label: '2022–23', value: '2022-23' },
+  { label: '2021–22', value: '2021-22' },
+  { label: '2020–21', value: '2020-21' },
 ];
 
 const yesNoOptions: ToggleOption<'yes' | 'no'>[] = [
@@ -102,6 +107,11 @@ const taxResidencyOptions: ToggleOption<TaxResidency>[] = [
   { label: 'Resident', value: 'resident' },
   { label: 'Non-resident', value: 'non-resident' },
   { label: 'WHM', value: 'whm' },
+];
+
+const familyStatusOptions: ToggleOption<FamilyStatus>[] = [
+  { label: 'Single', value: 'single' },
+  { label: 'Partnered', value: 'partnered' },
 ];
 
 const periodsPerYear: Record<Frequency, number> = {
@@ -236,7 +246,9 @@ function compute(
   const medicareSurcharge = calculateMedicareSurcharge(
     inputs.taxYear,
     baseCalc.annual.taxable,
-    inputs.hasPrivateHealth
+    inputs.hasPrivateHealth,
+    inputs.familyStatus,
+    inputs.dependents
   );
 
   // Tax before offsets
@@ -276,6 +288,8 @@ export const DetailedPayCalculatorCard: React.FC = () => {
     hasHELP: false,
     taxResidency: 'resident',
     hasPrivateHealth: false,
+    familyStatus: 'single',
+    dependents: 0,
   });
 
   const [additionalIncome, setAdditionalIncome] = useState<IncomeEntry[]>([]);
@@ -568,7 +582,7 @@ export const DetailedPayCalculatorCard: React.FC = () => {
             <select
               className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-800 outline-none focus:border-brand-500 dark:border-dark-border dark:bg-transparent dark:text-white"
               value={inputs.taxYear}
-              onChange={(event) => set('taxYear', event.target.value as TaxYear)}
+              onChange={(event) => set('taxYear', event.target.value as TaxYearId)}
             >
               {taxYearOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -668,6 +682,44 @@ export const DetailedPayCalculatorCard: React.FC = () => {
             value={healthToggleValue}
             onChange={(value) => set('hasPrivateHealth', value === 'yes')}
             size="sm"
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-dark-muted whitespace-nowrap">
+              Family Status
+            </p>
+            <InfoTooltipWithLink
+              content="Affects Medicare Levy Surcharge thresholds. Singles have a $97k base threshold, partnered have a $194k base threshold."
+              targetSection="medicare-levy-surcharge"
+            />
+          </div>
+          <ToggleGroup
+            options={familyStatusOptions}
+            value={inputs.familyStatus}
+            onChange={(value) => set('familyStatus', value)}
+            size="sm"
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-dark-muted">
+              Dependent Children
+            </p>
+            <InfoTooltipWithLink
+              content="Singles with 1+ children use the family threshold. Each additional child after the first adds $1,500 to the threshold."
+              targetSection="medicare-levy-surcharge"
+            />
+          </div>
+          <NumberInput
+            label=""
+            value={inputs.dependents}
+            onChange={(value) => set('dependents', value)}
+            min={0}
+            max={10}
+            className="w-24"
           />
         </div>
 

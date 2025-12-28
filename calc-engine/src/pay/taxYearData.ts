@@ -48,6 +48,24 @@ export interface MedicareConfig {
 }
 
 /**
+ * Medicare Levy Surcharge (MLS) configuration
+ */
+export interface MedicareSurchargeConfig {
+  /** Base threshold for singles */
+  singleThreshold: number;
+  /** Base threshold for families/couples */
+  familyThreshold: number;
+  /** Additional threshold per dependent child */
+  perDependentAmount: number;
+  /** Surcharge tiers */
+  tiers: Array<{
+    from: number;
+    to?: number;
+    rate: number;
+  }>;
+}
+
+/**
  * HELP/HECS repayment threshold
  */
 export interface HelpThreshold {
@@ -105,6 +123,9 @@ export interface TaxYearConfig {
   /** Medicare levy configuration */
   medicare: MedicareConfig;
 
+  /** Medicare Levy Surcharge configuration */
+  medicareSurcharge: MedicareSurchargeConfig;
+
   /** HELP/HECS repayment thresholds and system type */
   help: {
     thresholds: HelpThreshold[];
@@ -124,7 +145,7 @@ export interface TaxYearConfig {
  * Ordered chronologically from oldest to newest
  */
 export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
-  // 2020-21
+  // 2025-26
   {
     id: '2025-26',
     label: '2025–26 (current)',
@@ -158,6 +179,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 27222,
       lowIncomePhaseInEnd: 34027,
+    },
+    medicareSurcharge: {
+      singleThreshold: 101000,
+      familyThreshold: 202000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 101000, rate: 0 },
+        { from: 101000, to: 118000, rate: 0.01 },
+        { from: 118000, to: 158000, rate: 0.0125 },
+        { from: 158000, rate: 0.015 },
+      ],
     },
     help: {
       isMarginalSystem: true,
@@ -214,6 +246,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 27222,
       lowIncomePhaseInEnd: 34027,
+    },
+    medicareSurcharge: {
+      singleThreshold: 97000,
+      familyThreshold: 194000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 97000, rate: 0 },
+        { from: 97000, to: 113000, rate: 0.01 },
+        { from: 113000, to: 151000, rate: 0.0125 },
+        { from: 151000, rate: 0.015 },
+      ],
     },
     help: {
       isMarginalSystem: false,
@@ -284,6 +327,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       lowIncomeThreshold: 24276,
       lowIncomePhaseInEnd: 30345,
     },
+    medicareSurcharge: {
+      singleThreshold: 93000,
+      familyThreshold: 186000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 93000, rate: 0 },
+        { from: 93000, to: 108000, rate: 0.01 },
+        { from: 108000, to: 144000, rate: 0.0125 },
+        { from: 144000, rate: 0.015 },
+      ],
+    },
     help: {
       isMarginalSystem: false,
       thresholds: [
@@ -351,6 +405,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
+    },
+    medicareSurcharge: {
+      singleThreshold: 90000,
+      familyThreshold: 180000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 90000, rate: 0 },
+        { from: 90000, to: 105000, rate: 0.01 },
+        { from: 105000, to: 140000, rate: 0.0125 },
+        { from: 140000, rate: 0.015 },
+      ],
     },
     help: {
       isMarginalSystem: false,
@@ -420,6 +485,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
     },
+    medicareSurcharge: {
+      singleThreshold: 90000,
+      familyThreshold: 180000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 90000, rate: 0 },
+        { from: 90000, to: 105000, rate: 0.01 },
+        { from: 105000, to: 140000, rate: 0.0125 },
+        { from: 140000, rate: 0.015 },
+      ],
+    },
     help: {
       isMarginalSystem: false,
       thresholds: [
@@ -487,6 +563,17 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
+    },
+    medicareSurcharge: {
+      singleThreshold: 90000,
+      familyThreshold: 180000,
+      perDependentAmount: 1500,
+      tiers: [
+        { from: 0, to: 90000, rate: 0 },
+        { from: 90000, to: 105000, rate: 0.01 },
+        { from: 105000, to: 140000, rate: 0.0125 },
+        { from: 140000, rate: 0.015 },
+      ],
     },
     help: {
       isMarginalSystem: false,
