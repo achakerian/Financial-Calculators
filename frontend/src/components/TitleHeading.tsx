@@ -9,6 +9,7 @@ export const TitleHeading: React.FC = () => {
   const [isCondensed, setIsCondensed] = React.useState(false);
   const DEFAULT_DISCLAIMER = "There's always a disclaimer";
   const [disclaimer, setDisclaimer] = React.useState(DEFAULT_DISCLAIMER);
+  const [showingSatirical, setShowingSatirical] = React.useState(false);
   const resetTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const headerRef = React.useRef<HTMLElement | null>(null);
 
@@ -24,8 +25,23 @@ export const TitleHeading: React.FC = () => {
   );
 
   const handleDisclaimerClick = () => {
+    // If already showing satirical disclaimer, navigate to information page
+    if (showingSatirical) {
+      navigate('/information#disclaimer');
+      // Reset state after navigation
+      setDisclaimer(DEFAULT_DISCLAIMER);
+      setShowingSatirical(false);
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+        resetTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // First click: show satirical disclaimer
     const randomIndex = Math.floor(Math.random() * disclaimers.length);
     setDisclaimer(disclaimers[randomIndex]);
+    setShowingSatirical(true);
 
     if (resetTimeoutRef.current) {
       clearTimeout(resetTimeoutRef.current);
@@ -33,6 +49,7 @@ export const TitleHeading: React.FC = () => {
 
     resetTimeoutRef.current = setTimeout(() => {
       setDisclaimer(DEFAULT_DISCLAIMER);
+      setShowingSatirical(false);
       resetTimeoutRef.current = null;
     }, 7000);
   };

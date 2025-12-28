@@ -19,7 +19,9 @@ export const InfoTooltipWithLink: React.FC<InfoTooltipWithLinkProps> = ({
   const handleClick = () => {
     if (targetSection) {
       // Open information page in new tab with hash for section
-      window.open(`/information#${targetSection}`, '_blank');
+      // Use BASE_URL to handle both dev and production environments
+      const baseUrl = import.meta.env.BASE_URL;
+      window.open(`${baseUrl}information#${targetSection}`, '_blank');
     }
     setIsVisible(false);
   };

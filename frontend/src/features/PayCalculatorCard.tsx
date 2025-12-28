@@ -291,22 +291,24 @@ export const PayCalculatorCard: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center gap-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-dark-muted whitespace-nowrap">
                 Tax Residency
               </p>
               <InfoTooltipWithLink
-                content="Your tax residency status affects your tax rates and obligations."
+                content="Residency changes tax rates and Medicare."
                 targetSection="tax-residency"
               />
             </div>
-            <ToggleGroup
-              options={taxResidencyOptions}
-              value={inputs.taxResidency}
-              onChange={(value) => set('taxResidency', value)}
-              size="sm"
-            />
+            <div className="flex justify-end">
+              <ToggleGroup
+                options={taxResidencyOptions}
+                value={inputs.taxResidency}
+                onChange={(value) => set('taxResidency', value)}
+                size="sm"
+              />
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-slate-600 dark:border-dark-border dark:bg-dark-surfaceAlt dark:text-dark-text">
@@ -381,8 +383,8 @@ export const PayCalculatorCard: React.FC = () => {
             <div className="mb-1 flex items-center gap-1.5">
               <label className="text-xs font-semibold text-slate-500 dark:text-dark-muted">Take-home pay</label>
               <InfoTooltipWithLink
-                content="These are estimates only. Actual amounts may vary."
-                targetSection="financial-disclaimer"
+                content="Estimates only; your circumstances may change results."
+                targetSection="take-home-pay"
               />
             </div>
             <table className="w-full table-fixed text-left text-xs text-slate-600 dark:text-dark-text">

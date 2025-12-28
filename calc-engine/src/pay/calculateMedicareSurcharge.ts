@@ -13,7 +13,7 @@
  *
  * Family thresholds:
  * - Couples/families: $194,000 base threshold
- * - Additional per dependent child: $3,000
+ * - Additional per dependent child (after first): $1,500
  * - Tier boundaries scale proportionally with effective threshold
  *
  * @see https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge
@@ -39,7 +39,7 @@ const clamp0 = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
  * calculateMedicareSurcharge('2024-25', 90000, false, 'single', 0)   // Returns 0 (below threshold)
  * calculateMedicareSurcharge('2024-25', 100000, false, 'single', 0)  // Returns 1000 (1% of income)
  * calculateMedicareSurcharge('2024-25', 100000, true, 'single', 0)   // Returns 0 (has private health)
- * calculateMedicareSurcharge('2024-25', 100000, false, 'single', 1)  // Returns 0 (single + 1 child, threshold = $100k)
+ * calculateMedicareSurcharge('2024-25', 100000, false, 'single', 1)  // Returns 0 (single parent uses family threshold = $194k)
  *
  * // Partnered
  * calculateMedicareSurcharge('2024-25', 200000, false, 'partnered', 0)  // Returns 2000 (1% of income)

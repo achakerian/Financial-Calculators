@@ -12,6 +12,7 @@ import {
   TooltipProps
 } from 'recharts';
 import { PeriodRow } from 'calc-engine';
+import { formatCurrency } from '../lib/formatters';
 
 /**
  * Repayment Charts Component
@@ -80,17 +81,6 @@ function toMonthlyPoints(schedule: PeriodRow[]): MonthlyPoint[] {
       balance: row.closingBalance
     };
   });
-}
-
-/**
- * Formats number as currency (AUD)
- */
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: 'AUD',
-    maximumFractionDigits: 0
-  }).format(value);
 }
 
 /**

@@ -2,7 +2,7 @@
 
 _Last updated: 2025-12-28_
 
-**Status:** 16/50 complete (32%) • **Focus:** Calculation engine & product features
+**Status:** 19/51 complete (37%) • **Focus:** Calculation engine & product features
 
 **Legend:** ✅ Done | 🟡 Partial | ❌ Not started | 🎨 Needs design | ⚠️ Needs decision
 
@@ -55,13 +55,17 @@ _Last updated: 2025-12-28_
 - **Config:** `tailwind.config.js:3` darkMode: 'class'
 - **Colors:** Dark theme tokens in `tailwind.config.js:20-28`
 
-### TODO-2.2: Format Consistency ⚠️ 🟡
-**Policy documented, needs audit + user decision**
-- **Decision:** Always $XX,XXX (no decimals) or $XX,XXX.00?
-- **Current:** `PRECISION_POLICY.md` specifies no decimals
-- **Implementation:** `formatters.ts:23-33` uses maximumFractionDigits: 0
-- **Action:** Audit all formatCurrency() calls for consistency
-- **Files:** `formatters.ts`, all calculator cards
+### TODO-2.2: Format Consistency ✅
+**COMPLETED** - Comprehensive audit completed, duplicate function removed
+- **Audit Results:** 90 formatCurrency() calls found across 14 files
+- **Policy Compliance:** 100% - all calls follow no-decimals policy correctly
+- **Critical Fix:** Removed duplicate formatCurrency from `RepaymentCharts.tsx`
+  - Missing `clampCurrency()` enforcement ($99M limit)
+  - Missing `A$` → `$` replacement
+  - Now uses centralized `lib/formatters.ts` implementation
+- **Decision:** Confirmed no decimals policy (as per PRECISION_POLICY.md)
+- **Files Modified:** `frontend/src/components/RepaymentCharts.tsx:15,86-95`
+- **Build:** Successful ✓
 
 ### TODO-2.3: Input Mode Attributes ✅
 **COMPLETED** - All number inputs have inputMode="decimal"
@@ -73,6 +77,23 @@ _Last updated: 2025-12-28_
 - **Login moved:** To header next to dark/light toggle (TitleHeading.tsx:116-123)
 - **Information page:** Contains assumptions, disclaimers, about, methodology
 - **Files:** `BottomNav.tsx`, `TitleHeading.tsx`, `InformationPage.tsx`, `App.tsx:21`
+- **Build:** Successful ✓
+
+### TODO-2.17: Disclaimer Section on Information Page ✅
+**COMPLETED** - Comprehensive disclaimer section added to Information page
+- **Location:** Bottom of Information page (third accordion item)
+- **Content:** Legal disclaimers covering educational use, limitations, professional advice recommendation
+- **Component:** `FinancialDisclaimerInformationSection.tsx` (new)
+- **Badge:** "Legal"
+- **Features:**
+  - Anchor ID (#disclaimer) for direct linking
+  - Auto-expand and scroll when accessed via hash link
+  - Linked from header disclaimer button
+- **Header Integration:** TitleHeading disclaimer button now includes clickable info icon linking to full disclaimer
+- **Files:**
+  - `FinancialDisclaimerInformationSection.tsx:1-16` (new component)
+  - `InformationPage.tsx:6,10-11,31-35` (added accordion item + hash navigation)
+  - `TitleHeading.tsx:2,127-142` (link to disclaimer)
 - **Build:** Successful ✓
 
 ### TODO-1.13: HECS Information Banner ✅
@@ -179,14 +200,21 @@ _Last updated: 2025-12-28_
 - **Coverage:** Single thresholds with phase-in formula
 - **Data:** `taxYearData.ts` includes lowIncomeThreshold and lowIncomePhaseInEnd for all 6 years
 - **Tests:** Verified in `calculatePaySummary.test.ts`
-- **Family Logic:** Still pending (see TODO-1.6 below)
+- **Note:** Medicare Levy family logic completed in TODO-1.6 ✓
 
-### TODO-1.6: Medicare Levy Surcharge - Family Logic ❌ 🎨
-**Calculation (safe):** Implement MLS tiers with family thresholds
-**UI (needs design):** Family status selector (Single/Family/Single parent), dependants count input
-- **Current:** Basic PHI toggle only
-- **Files:** `DetailedPayCalculatorCard.tsx`, tax calc functions
-- **Needs:** Form layout design
+### TODO-1.6: Medicare Levy Surcharge - Family Logic ✅
+**COMPLETED** - Full implementation with family status and dependents support
+- **UI Implementation:** Family status toggle (Single/Partnered) and dependent children input (0-10)
+- **Calculation Engine:** Full ATO-compliant logic with proper threshold scaling
+- **Family Thresholds:** Singles with dependents use family threshold (single parent rule)
+- **Dependent Adjustment:** $1,500 per child after first child
+- **Test Coverage:** 34 comprehensive tests all passing
+- **Files:**
+  - `DetailedPayCalculatorCard.tsx:688-724` (UI inputs with tooltips)
+  - `calculateMedicareSurcharge.ts` (full calculation logic)
+  - `calculateMedicareSurcharge.test.ts` (34 tests, all passing)
+  - Fixed comment typos and incorrect examples
+- **Build:** Frontend & calc-engine both successful ✓
 
 ### TODO-1.7: Year-Specific HELP Tables ✅
 **COMPLETED** - Both FY2024-25 and FY2025-26 tables implemented

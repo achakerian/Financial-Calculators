@@ -183,6 +183,43 @@ export const MLSInformationSection: React.FC = () => {
           </div>
 
           <div>
+            <h4 className="mb-1 font-semibold">Private Health Insurance and MLS</h4>
+            <p>
+              The MLS is an additional levy on top of the standard 2% Medicare levy. It applies if you do not have
+              appropriate private hospital cover and your income exceeds certain thresholds.
+            </p>
+            <p className="mt-2">
+              If you have private hospital cover with a registered health insurer, you are generally exempt from the
+              MLS, regardless of your income level. The MLS is separate from the Medicare levy and can increase your
+              overall tax.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="mb-1 font-semibold">Family Status and MLS Thresholds</h4>
+            <p>
+              For MLS purposes, you are generally considered a family if you have a spouse or partner, and/or dependent
+              children. Family income thresholds differ from single thresholds.
+            </p>
+            <p className="mt-2">
+              Selecting the correct family status helps ensure MLS calculations are applied correctly to your
+              circumstances.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="mb-1 font-semibold">Dependent Children Adjustment</h4>
+            <p>
+              For families, the MLS income threshold increases for each dependent child after the first. The adjustment
+              is {formatCurrency(current.thresholds.perDependent)} per additional child.
+            </p>
+            <p className="mt-2">
+              Correctly identifying dependants is important, as the definition of a dependent child affects whether the
+              surcharge applies.
+            </p>
+          </div>
+
+          <div>
             <h4 className="mb-1 font-semibold">More Information</h4>
             <p>
               For official guidance, visit the{' '}

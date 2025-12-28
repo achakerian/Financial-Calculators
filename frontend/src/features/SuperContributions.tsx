@@ -61,7 +61,7 @@ export const SuperContributions: React.FC = () => {
             </h2>
             <InfoTooltipWithLink
               content="Tax-deductible superannuation contributions."
-              targetSection="salary-sacrifice"
+              targetSection="super-contributions"
             />
           </div>
           <p
