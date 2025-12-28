@@ -1,25 +1,21 @@
 import React from 'react';
 import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAccordion';
 import { PageContainer } from '../components/PageContainer';
-import { LoanCalculatorCard } from '../features/LoanCalculatorCard';
-import { BorrowingPowerSection } from '../features/BorrowingPowerSection';
-import { LoanComparisonCard } from '../features/LoanComparisonCard';
 
 const items: FeatureAccordionItem[] = [
   {
-    badge: 'Mortgage',
-    title: 'Loan Calculator',
-    content: <LoanCalculatorCard />,
-  },
-  {
-    badge: 'Compare',
-    title: 'Mortgage vs Personal Loan',
-    content: <LoanComparisonCard />,
-  },
-  {
-    badge: 'Capacity',
-    title: 'Borrowing Power',
-    content: <BorrowingPowerSection />,
+    badge: 'Home',
+    title: '🚧 Coming Soon',
+    content: (
+      <div className="space-y-4 p-4">
+        <p className="text-slate-700 dark:text-dark-text">
+          New features coming soon to the home page.
+        </p>
+        <p className="text-sm text-slate-600 dark:text-dark-muted">
+          In the meantime, check out the other sections for financial calculators and tools.
+        </p>
+      </div>
+    ),
   },
 ];
 
