@@ -1,12 +1,65 @@
 import React from 'react';
+import { InfoSectionHeader } from '../components/InfoSectionHeader';
+import { formatCurrency } from '../lib/formatters';
 
 export const MLSInformationSection: React.FC = () => {
-  return (
-    <div className="space-y-4 py-4" id="medicare-levy-surcharge">
-      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6 text-xs text-blue-900 dark:border-blue-900/30 dark:bg-blue-950/20 dark:text-blue-200">
-        <h3 className="mb-3 text-sm font-semibold">Medicare Levy Surcharge (MLS)</h3>
+  const years = ['FY2024-25', 'FY2025-26'];
+  const [year, setYear] = React.useState<string>(years[0]);
 
-        <div className="space-y-3">
+  const DATA: Record<string, {
+    thresholds: { single: number; family: number; perDependent: number };
+    brackets: { singleMax: number | null; familyMax: number | null; rate: number }[];
+  }> = React.useMemo(() => ({
+    'FY2024-25': {
+      thresholds: { single: 97_000, family: 194_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 97_000, familyMax: 194_000, rate: 0 },
+        { singleMax: 113_000, familyMax: 226_000, rate: 0.01 },
+        { singleMax: 151_000, familyMax: 302_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
+    'FY2025-26': {
+      thresholds: { single: 97_000, family: 194_000, perDependent: 1_500 },
+      brackets: [
+        { singleMax: 97_000, familyMax: 194_000, rate: 0 },
+        { singleMax: 113_000, familyMax: 226_000, rate: 0.01 },
+        { singleMax: 151_000, familyMax: 302_000, rate: 0.0125 },
+        { singleMax: null, familyMax: null, rate: 0.015 },
+      ],
+    },
+  }), []);
+
+  const current = DATA[year];
+
+  const findRateSingle = (income: number): number => {
+    const b = current.brackets;
+    if (income <= b[0].singleMax!) return 0;
+    if (income <= (b[1].singleMax as number)) return b[1].rate;
+    if (income <= (b[2].singleMax as number)) return b[2].rate;
+    return b[3].rate;
+  };
+
+  const findRateFamily = (income: number, dependents: number): number => {
+    const adjBase = current.thresholds.family + Math.max(0, dependents - 1) * current.thresholds.perDependent;
+    const famIncome = income; // using combined family income as in examples
+    if (famIncome <= adjBase) return 0;
+    const b = current.brackets;
+    if (famIncome <= (b[1].familyMax as number)) return b[1].rate;
+    if (famIncome <= (b[2].familyMax as number)) return b[2].rate;
+    return b[3].rate;
+  };
+
+  return (
+    <div className="space-y-3 text-sm text-slate-700 dark:text-dark-text" id="medicare-levy-surcharge">
+      <InfoSectionHeader
+        title="Medicare Levy Surcharge (MLS)"
+        years={years}
+        year={year}
+        onYearChange={setYear}
+      />
+
+      <div className="space-y-3">
           <div>
             <h4 className="mb-1 font-semibold">What is the MLS?</h4>
             <p>
@@ -17,66 +70,63 @@ export const MLSInformationSection: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="mb-1 font-semibold">Income Thresholds (2024-25, 2025-26)</h4>
+            <h4 className="mb-1 font-semibold">Income Thresholds — {year}</h4>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-blue-300 dark:border-blue-800">
+                <tr className="border-b border-slate-200 dark:border-dark-border">
                   <th className="pb-1 text-left">Family Status</th>
                   <th className="pb-1 text-right">Base Threshold</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-200 dark:divide-blue-900">
+              <tbody className="divide-y divide-slate-200 dark:divide-dark-border">
                 <tr>
                   <td className="py-1">Single</td>
-                  <td className="py-1 text-right font-semibold">$97,000</td>
+                  <td className="py-1 text-right font-semibold">{formatCurrency(current.thresholds.single)}</td>
                 </tr>
                 <tr>
                   <td className="py-1">Couple / Family</td>
-                  <td className="py-1 text-right font-semibold">$194,000</td>
+                  <td className="py-1 text-right font-semibold">{formatCurrency(current.thresholds.family)}</td>
                 </tr>
                 <tr>
                   <td className="py-1">Per dependent child (after first)</td>
-                  <td className="py-1 text-right font-semibold">+$1,500</td>
+                  <td className="py-1 text-right font-semibold">+{formatCurrency(current.thresholds.perDependent)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div>
-            <h4 className="mb-1 font-semibold">Surcharge Rates</h4>
+            <h4 className="mb-1 font-semibold">Surcharge Rates — {year}</h4>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-blue-300 dark:border-blue-800">
+                <tr className="border-b border-slate-200 dark:border-dark-border">
                   <th className="pb-1 text-left">Income (Singles)</th>
                   <th className="pb-1 text-left">Income (Families)*</th>
                   <th className="pb-1 text-right">Rate</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-200 dark:divide-blue-900">
-                <tr>
-                  <td className="py-1">$0 – $97,000</td>
-                  <td className="py-1">$0 – $194,000</td>
-                  <td className="py-1 text-right font-semibold">0%</td>
-                </tr>
-                <tr>
-                  <td className="py-1">$97,001 – $113,000</td>
-                  <td className="py-1">$194,001 – $226,000</td>
-                  <td className="py-1 text-right font-semibold">1.0%</td>
-                </tr>
-                <tr>
-                  <td className="py-1">$113,001 – $151,000</td>
-                  <td className="py-1">$226,001 – $302,000</td>
-                  <td className="py-1 text-right font-semibold">1.25%</td>
-                </tr>
-                <tr>
-                  <td className="py-1">$151,001+</td>
-                  <td className="py-1">$302,001+</td>
-                  <td className="py-1 text-right font-semibold">1.5%</td>
-                </tr>
+              <tbody className="divide-y divide-slate-200 dark:divide-dark-border">
+                {current.brackets.map((b, idx) => {
+                  const prevSingleMax = idx === 0 ? 0 : (current.brackets[idx - 1].singleMax as number) + 1;
+                  const prevFamilyMax = idx === 0 ? 0 : (current.brackets[idx - 1].familyMax as number) + 1;
+                  const singleLabel = b.singleMax
+                    ? `${formatCurrency(prevSingleMax)} – ${formatCurrency(b.singleMax)}`.replace('$0 – ', '$0 – ')
+                    : `${formatCurrency((current.brackets[idx - 1].singleMax as number) + 1)}+`;
+                  const familyLabel = b.familyMax
+                    ? `${formatCurrency(prevFamilyMax)} – ${formatCurrency(b.familyMax)}`.replace('$0 – ', '$0 – ')
+                    : `${formatCurrency((current.brackets[idx - 1].familyMax as number) + 1)}+`;
+                  return (
+                    <tr key={idx}>
+                      <td className="py-1">{singleLabel}</td>
+                      <td className="py-1">{familyLabel}</td>
+                      <td className="py-1 text-right font-semibold">{(b.rate * 100).toFixed(2).replace(/\.00$/, '')}%</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <p className="mt-2 text-[11px] italic">
-              *Family thresholds shown for couples with no dependents. Add $3,000 per dependent child.
+              *Family thresholds shown for couples with no dependents. Add {formatCurrency(current.thresholds.perDependent)} per dependent child after first.
             </p>
           </div>
 
@@ -84,15 +134,13 @@ export const MLSInformationSection: React.FC = () => {
             <h4 className="mb-1 font-semibold">Examples</h4>
             <ul className="ml-4 list-disc space-y-1">
               <li>
-                <strong>Single, $100,000 income, no PHI:</strong> Threshold = $97,000. Pays 1% MLS = $1,000
+                <strong>Single, $100,000 income, no PHI:</strong> Threshold = {formatCurrency(current.thresholds.single)}. Pays {(findRateSingle(100_000) * 100).toFixed(0)}% MLS = {formatCurrency(100_000 * findRateSingle(100_000))}
               </li>
               <li>
-                <strong>Single with 1 child, $194,000 income, no PHI:</strong> Threshold = $194,000
-                (family threshold). No surcharge (at threshold)
+                <strong>Single with 1 child, {formatCurrency(current.thresholds.family)} income, no PHI:</strong> Threshold = {formatCurrency(current.thresholds.family)} (family threshold). No surcharge (at threshold)
               </li>
               <li>
-                <strong>Couple with 2 children, $196,000 income, no PHI:</strong> Threshold = $195,500
-                ($194,000 + $1,500). Pays 1% MLS = $1,960
+                <strong>Couple with 2 children, $196,000 income, no PHI:</strong> Threshold = {formatCurrency(current.thresholds.family + current.thresholds.perDependent)}. Pays {(findRateFamily(196_000, 2) * 100).toFixed(0)}% MLS = {formatCurrency(196_000 * findRateFamily(196_000, 2))}
               </li>
             </ul>
           </div>
@@ -105,7 +153,7 @@ export const MLSInformationSection: React.FC = () => {
                 href="https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold underline hover:text-blue-600 dark:hover:text-blue-400"
+                className="font-semibold underline hover:text-slate-700 dark:hover:text-white"
               >
                 ATO Medicare Levy Surcharge page
               </a>
@@ -113,7 +161,6 @@ export const MLSInformationSection: React.FC = () => {
             </p>
           </div>
         </div>
-      </div>
     </div>
   );
 };

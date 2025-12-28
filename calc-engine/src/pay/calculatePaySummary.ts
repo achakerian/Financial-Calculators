@@ -12,6 +12,7 @@ import {
   PayBreakdown,
   Residency,
   TaxYearId,
+  FamilyStatus,
 } from './types';
 
 const clamp0 = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
@@ -68,7 +69,9 @@ function calculateIncomeTax(
 function calculateMedicare(
   taxYear: TaxYearId,
   taxableIncome: number,
-  option: 'full' | 'reduced' | 'exempt'
+  option: 'full' | 'reduced' | 'exempt',
+  familyStatus: FamilyStatus = 'single',
+  dependents: number = 0
 ): number {
   if (option === 'exempt') return 0;
 
@@ -77,27 +80,37 @@ function calculateMedicare(
 
   const baseRate = option === 'reduced' ? config.reducedRate : config.fullRate;
 
-  // If thresholds are not configured (set to 0), use flat rate
-  if (
-    config.lowIncomeThreshold <= 0 ||
-    config.lowIncomePhaseInEnd <= config.lowIncomeThreshold
-  ) {
+  // Determine effective thresholds based on family status
+  const hasFamily = familyStatus === 'partnered' || dependents > 0;
+  let lowerThreshold: number;
+  let upperThreshold: number;
+
+  if (hasFamily) {
+    // Family thresholds with dependent adjustments
+    // Singles with dependents use family thresholds (single parents)
+    const dependentCount = Math.max(0, dependents);
+    lowerThreshold = config.familyLowIncomeThreshold + (dependentCount * config.perDependentLowerAmount);
+    upperThreshold = config.familyLowIncomePhaseInEnd + (dependentCount * config.perDependentUpperAmount);
+  } else {
+    // Single thresholds
+    lowerThreshold = config.lowIncomeThreshold;
+    upperThreshold = config.lowIncomePhaseInEnd;
+  }
+
+  // Handle legacy configs without thresholds
+  if (lowerThreshold <= 0 || upperThreshold <= lowerThreshold) {
     return income * baseRate;
   }
 
   // Below threshold: no levy
-  if (income <= config.lowIncomeThreshold) {
+  if (income <= lowerThreshold) {
     return 0;
   }
 
-  // In phase-in zone: shade-in formula
-  if (income < config.lowIncomePhaseInEnd) {
-    // The ATO uses a formula where the levy is a percentage of the excess
-    // over the threshold, calibrated so it equals the full levy at phaseInEnd
-    const shadeRate =
-      (baseRate * config.lowIncomePhaseInEnd) /
-      (config.lowIncomePhaseInEnd - config.lowIncomeThreshold);
-    return shadeRate * (income - config.lowIncomeThreshold);
+  // In phase-in zone: shade-in formula (10% of excess)
+  if (income < upperThreshold) {
+    const shadeRate = (baseRate * upperThreshold) / (upperThreshold - lowerThreshold);
+    return shadeRate * (income - lowerThreshold);
   }
 
   // Above phase-in zone: full levy
@@ -203,7 +216,9 @@ export function calculatePaySummary(
   const medicareAnnual = calculateMedicare(
     req.taxYear,
     taxableAnnual,
-    medicareOption
+    medicareOption,
+    req.familyStatus ?? 'single',
+    req.dependents ?? 0
   );
 
   const helpAnnual = req.hasHELP

@@ -41,10 +41,22 @@ export interface MedicareConfig {
   fullRate: number;
   /** Reduced rate for eligible retirees (typically 1%) */
   reducedRate: number;
-  /** Income threshold where phase-in begins (0 = no phase-in) */
+
+  // SINGLES THRESHOLDS
+  /** Income threshold where phase-in begins for singles (0 = no phase-in) */
   lowIncomeThreshold: number;
-  /** Income where full rate applies (0 = no phase-in) */
+  /** Income where full rate applies for singles (0 = no phase-in) */
   lowIncomePhaseInEnd: number;
+
+  // FAMILY THRESHOLDS
+  /** Income threshold where phase-in begins for families (base amount) */
+  familyLowIncomeThreshold: number;
+  /** Income where full rate applies for families (base amount) */
+  familyLowIncomePhaseInEnd: number;
+  /** Additional threshold per dependent child (lower) */
+  perDependentLowerAmount: number;
+  /** Additional threshold per dependent child (upper) */
+  perDependentUpperAmount: number;
 }
 
 /**
@@ -179,6 +191,11 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 27222,
       lowIncomePhaseInEnd: 34027,
+      // TODO: Update with official ATO thresholds when 2025-26 data is published
+      familyLowIncomeThreshold: 45907, // Using 2024-25 values as placeholder
+      familyLowIncomePhaseInEnd: 57383,
+      perDependentLowerAmount: 4216,
+      perDependentUpperAmount: 5270,
     },
     medicareSurcharge: {
       singleThreshold: 101000,
@@ -246,6 +263,10 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 27222,
       lowIncomePhaseInEnd: 34027,
+      familyLowIncomeThreshold: 45907,
+      familyLowIncomePhaseInEnd: 57383,
+      perDependentLowerAmount: 4216,
+      perDependentUpperAmount: 5270,
     },
     medicareSurcharge: {
       singleThreshold: 97000,
@@ -326,6 +347,10 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 24276,
       lowIncomePhaseInEnd: 30345,
+      familyLowIncomeThreshold: 43846,
+      familyLowIncomePhaseInEnd: 54807,
+      perDependentLowerAmount: 4027,
+      perDependentUpperAmount: 5034,
     },
     medicareSurcharge: {
       singleThreshold: 93000,
@@ -405,6 +430,10 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
+      familyLowIncomeThreshold: 40939,
+      familyLowIncomePhaseInEnd: 51173,
+      perDependentLowerAmount: 3760,
+      perDependentUpperAmount: 4700,
     },
     medicareSurcharge: {
       singleThreshold: 90000,
@@ -484,6 +513,10 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
+      familyLowIncomeThreshold: 39402,
+      familyLowIncomePhaseInEnd: 49252,
+      perDependentLowerAmount: 3619,
+      perDependentUpperAmount: 4523,
     },
     medicareSurcharge: {
       singleThreshold: 90000,
@@ -563,6 +596,10 @@ export const TAX_YEAR_CONFIGS: TaxYearConfig[] = [
       reducedRate: 0.01,
       lowIncomeThreshold: 0,
       lowIncomePhaseInEnd: 0,
+      familyLowIncomeThreshold: 39167,
+      familyLowIncomePhaseInEnd: 48958,
+      perDependentLowerAmount: 3597,
+      perDependentUpperAmount: 4496,
     },
     medicareSurcharge: {
       singleThreshold: 90000,

@@ -44,7 +44,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
           inputMode="decimal"
           value={formatNumber(value)}
           onChange={handleChange}
-          className="w-full bg-transparent focus:outline-none"
+          className="w-full bg-transparent text-right focus:outline-none"
         />
         {suffix && <span className="ml-1 text-sm text-slate-400">{suffix}</span>}
       </div>

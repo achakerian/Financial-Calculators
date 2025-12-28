@@ -1,6 +1,8 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { FeatureAccordion, FeatureAccordionItem } from '../components/FeatureAccordion';
 import { MLSInformationSection } from '../features/MLSInformationSection';
+import { SuperContributionsInformationSection } from '../features/SuperContributionsInformationSection';
 
 export const InformationPage: React.FC = () => {
   React.useEffect(() => {
@@ -9,12 +11,20 @@ export const InformationPage: React.FC = () => {
 
   return (
     <PageContainer borderColor="bg-blue-500">
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-6 text-3xl font-bold text-slate-800 dark:text-white">
-          Tax Information
-        </h1>
-        <MLSInformationSection />
-      </div>
+      <FeatureAccordion items={infoItems} initialOpen={null} />
     </PageContainer>
   );
 };
+
+const infoItems: FeatureAccordionItem[] = [
+  {
+    badge: 'Tax',
+    title: 'Medicare Levy Surcharge (MLS)',
+    content: <MLSInformationSection />,
+  },
+  {
+    badge: 'Super',
+    title: 'Superannuation Contributions',
+    content: <SuperContributionsInformationSection />,
+  },
+];
