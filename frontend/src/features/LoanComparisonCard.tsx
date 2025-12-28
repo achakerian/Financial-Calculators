@@ -33,12 +33,14 @@ export const LoanComparisonCard: React.FC = () => {
       personalLoanAmount: personalAmount,
       personalLoanRate: carRate,
       personalLoanTermYears: carTermYrs,
+      mortgageFeesYearly: mortgageFeesYearly,
+      personalFeesMonthly: personalFeesMonthly,
       frequency: 'monthly',
       repaymentType: 'principalAndInterest',
       repaymentStrategy: 'reduceTerm',
       startDate
     });
-  }, [mortgageAmount, mortgageRate, mortgageTermYrs, personalAmount, carRate, carTermYrs, startDate]);
+  }, [mortgageAmount, mortgageRate, mortgageTermYrs, personalAmount, carRate, carTermYrs, mortgageFeesYearly, personalFeesMonthly, startDate]);
 
   // Extract values for display
   const monthlyA = Math.round(comparison.summary.fullMortgagePayment);
@@ -233,7 +235,7 @@ export const LoanComparisonCard: React.FC = () => {
                     {showWhatIf && (
                       <div className="mt-3">
                         <p className="mb-3">
-                          If you put it all into a mortgage and paid at the same rate as Scenario B for the first {carTermYrs} years, your final position would be:
+                          If you instead kept a single mortgage and made the same higher repayments as Scenario B for the first {carTermYrs} years:
                         </p>
                         <div className="space-y-2 rounded-lg bg-blue-100/90 p-3 dark:bg-blue-900/90">
                           <Row

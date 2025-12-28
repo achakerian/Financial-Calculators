@@ -4,6 +4,8 @@ export type PayFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'annually';
 
 export type Residency = 'resident' | 'nonResident' | 'workingHoliday';
 
+export type FamilyStatus = 'single' | 'partnered';
+
 export interface PayCalculateRequest {
   taxYear: TaxYearId;
   residency?: Residency;
@@ -13,6 +15,8 @@ export interface PayCalculateRequest {
   medicareExempt: boolean;
   medicareReduced?: boolean;
   hasPrivateHealth?: boolean;
+  familyStatus?: FamilyStatus;
+  dependents?: number;
   claimTaxFreeThreshold?: boolean;
   deductions: number;
   includeSuper: boolean;

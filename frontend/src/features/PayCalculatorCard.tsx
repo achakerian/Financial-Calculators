@@ -4,14 +4,13 @@ import { CurrencyInput } from '../components/inputs';
 import { formatCurrency, formatPercent } from '../lib/formatters';
 import { Tooltip } from '../components/Tooltip';
 import { InfoTooltipWithLink } from '../components/InfoTooltipWithLink';
-import { calculatePaySummary } from '../../../calc-engine/src';
+import { calculatePaySummary, type TaxYearId } from '../../../calc-engine/src';
 
 type Frequency = 'weekly' | 'fortnightly' | 'monthly' | 'annually' | 'projection';
-type TaxYear = '2024-25' | '2025-26';
 type TaxResidency = 'resident' | 'non-resident' | 'whm';
 
 type Inputs = {
-  taxYear: TaxYear;
+  taxYear: TaxYearId;
   annualSalary: number;
   frequency: Frequency;
   hasHELP: boolean;
@@ -42,9 +41,13 @@ const frequencyOptions: ToggleOption<Frequency>[] = [
   { label: 'Projection', value: 'projection' },
 ];
 
-const taxYearOptions: Array<{ label: string; value: TaxYear }> = [
-  { label: '2024–25', value: '2024-25' },
+const taxYearOptions: Array<{ label: string; value: TaxYearId }> = [
   { label: '2025–26', value: '2025-26' },
+  { label: '2024–25', value: '2024-25' },
+  { label: '2023–24', value: '2023-24' },
+  { label: '2022–23', value: '2022-23' },
+  { label: '2021–22', value: '2021-22' },
+  { label: '2020–21', value: '2020-21' },
 ];
 
 const yesNoOptions: ToggleOption<'yes' | 'no'>[] = [
@@ -218,7 +221,7 @@ export const PayCalculatorCard: React.FC = () => {
               <select
                 className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-800 outline-none focus:border-brand-500 dark:border-dark-border dark:bg-transparent dark:text-white"
                 value={inputs.taxYear}
-                onChange={(event) => set('taxYear', event.target.value as TaxYear)}
+                onChange={(event) => set('taxYear', event.target.value as TaxYearId)}
               >
                 {taxYearOptions.map((option) => (
                   <option key={option.value} value={option.value}>

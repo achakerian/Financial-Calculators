@@ -1,8 +1,8 @@
 # Implementation Roadmap
 
-_Last updated: 2025-12-26_
+_Last updated: 2025-12-28_
 
-**Status:** 14/50 complete (28%) • **Focus:** Calculation engine & product features
+**Status:** 15/50 complete (30%) • **Focus:** Calculation engine & product features
 
 **Legend:** ✅ Done | 🟡 Partial | ❌ Not started | 🎨 Needs design | ⚠️ Needs decision
 
@@ -138,6 +138,35 @@ _Last updated: 2025-12-26_
   - Tests: `taxYearData.test.ts` (67 tests), `calculateLITO.test.ts` (25 tests), `calculateMedicareSurcharge.test.ts` (26 tests), extended `calculatePaySummary.test.ts` (43 tests)
 - **Documentation:** Updated `calc-engine/README.md` with comprehensive usage examples
 - **Future Benefit:** Adding new tax years now requires updating only 1 file instead of 5
+- **Build:** Frontend & calc-engine both successful ✓
+
+### TODO-3.17: Loan Comparison Calculator Refactor ✅
+**COMPLETED** - Moved all loan comparison logic to calc-engine and enhanced UI
+- **Achievement:** Consolidated comparison calculations into pure calc-engine function
+- **New Function:** `compareMortgageVsPersonalLoan()` with comprehensive TypeScript interfaces
+- **Features Added:**
+  - Fee integration (mortgage yearly fees, personal loan monthly fees)
+  - Schedule merging for combined scenario visualization
+  - Dynamic "Scenario A Wins" / "Scenario B Wins" outcome display
+  - "But..." collapsible section showing what-if alternative scenario
+  - Input organization with section headers (Mortgage / Personal Loan)
+  - Right-aligned inputs with units inside fields (/yr, /mth, /yrs)
+  - Info tooltip for "Term Left" field explaining partial mortgage calculations
+  - Monthly repayment breakdown (during and after personal loan period)
+  - Orange hazard-style outcome container for visual prominence
+- **Bug Fixes:**
+  - Fixed Alternative 1 & 2 graph rendering (calculation errors)
+  - Fixed page scroll issue (vertical line causing auto-scroll to bottom)
+- **Code Quality:**
+  - All 167 calc-engine tests passing
+  - Removed unused graph visualizations after user feedback
+  - Cleaned up frontend component (removed manual calculations)
+- **Files:**
+  - `calc-engine/src/index.ts` - Added `compareMortgageVsPersonalLoan`, `LoanComparisonInputs`, `LoanComparisonSummary`, `LoanComparisonResult` interfaces
+  - `frontend/src/features/LoanComparisonCard.tsx` - Complete UI refactor
+  - `frontend/src/components/inputs/{Currency,Number}Input.tsx` - Added suffix support
+  - `frontend/src/components/PageContainer.tsx` - Fixed page scroll bug
+  - `frontend/src/graphs/RepaymentCharts.tsx` - Fixed graph calculations
 - **Build:** Frontend & calc-engine both successful ✓
 
 ---

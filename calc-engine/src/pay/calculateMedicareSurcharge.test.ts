@@ -233,4 +233,186 @@ describe('calculateMedicareSurcharge', () => {
       );
     });
   });
+
+  describe('Family status thresholds', () => {
+    describe('Single status', () => {
+      it('should use $97,000 threshold for singles', () => {
+        expect(calculateMedicareSurcharge(taxYear, 96000, false, 'single', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 97000, false, 'single', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 100000, false, 'single', 0)).toBe(1000);
+      });
+
+      it('should ignore dependents for singles', () => {
+        // Even with dependents, single uses single threshold ($97k)
+        expect(calculateMedicareSurcharge(taxYear, 96000, false, 'single', 5)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 100000, false, 'single', 5)).toBe(1000);
+      });
+    });
+
+    describe('Partnered status', () => {
+      it('should use $194,000 base threshold for partnered without dependents', () => {
+        expect(calculateMedicareSurcharge(taxYear, 190000, false, 'partnered', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 194000, false, 'partnered', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered', 0)).toBe(2000); // 1%
+      });
+
+      it('should add $1,500 per dependent after the first for partnered', () => {
+        // 1 dependent: threshold = $194,000 (no addition for first child)
+        expect(calculateMedicareSurcharge(taxYear, 193000, false, 'partnered', 1)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 194000, false, 'partnered', 1)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 195000, false, 'partnered', 1)).toBeCloseTo(1950, 0);
+
+        // 2 dependents: threshold = $195,500 (family + $1,500)
+        expect(calculateMedicareSurcharge(taxYear, 195000, false, 'partnered', 2)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 195500, false, 'partnered', 2)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 196000, false, 'partnered', 2)).toBeCloseTo(1960, 0);
+
+        // 5 dependents: threshold = $200,000 (family + 4 × $1,500)
+        expect(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered', 5)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 201000, false, 'partnered', 5)).toBeCloseTo(2010, 0);
+      });
+    });
+
+    describe('Single with dependents (single parents)', () => {
+      it('should use $97,000 base threshold for singles with no dependents', () => {
+        expect(calculateMedicareSurcharge(taxYear, 90000, false, 'single', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 97000, false, 'single', 0)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 100000, false, 'single', 0)).toBe(1000);
+      });
+
+      it('should use family threshold for singles with 1+ dependents', () => {
+        // 1 dependent: threshold = $194,000 (family threshold, no addition for first child)
+        expect(calculateMedicareSurcharge(taxYear, 193000, false, 'single', 1)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 194000, false, 'single', 1)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 195000, false, 'single', 1)).toBeCloseTo(1950, 0);
+
+        // 2 dependents: threshold = $195,500 (family + $1,500 for second child)
+        expect(calculateMedicareSurcharge(taxYear, 195500, false, 'single', 2)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 196000, false, 'single', 2)).toBeCloseTo(1960, 0);
+
+        // 3 dependents: threshold = $197,000 (family + 2 × $1,500)
+        expect(calculateMedicareSurcharge(taxYear, 197000, false, 'single', 3)).toBe(0);
+        expect(calculateMedicareSurcharge(taxYear, 198000, false, 'single', 3)).toBeCloseTo(1980, 0);
+      });
+    });
+  });
+
+  describe('Tier boundary scaling for families', () => {
+    it('should scale tier boundaries proportionally for families', () => {
+      // Partnered with 2 kids: threshold = $200,000, scale = 200,000 / 97,000 ≈ 2.062
+      // Tier 1 scaled: ~$200,014 - $233,006 at 1%
+      const income = 205000;
+      const surcharge = calculateMedicareSurcharge(taxYear, income, false, 'partnered', 2);
+      expect(surcharge).toBeCloseTo(income * 0.01, 0); // 1% tier
+    });
+
+    it('should apply correct tier rates after scaling', () => {
+      // Family threshold = $194,000, scale factor = 2.0
+      // Scaled tier 2: ~$226,000 - $302,000 at 1.25%
+      const income = 240000;
+      const surcharge = calculateMedicareSurcharge(taxYear, income, false, 'partnered', 0);
+      expect(surcharge).toBeCloseTo(income * 0.0125, 0); // 1.25% tier
+
+      // Scaled tier 3: >$302,000 at 1.5%
+      const highIncome = 320000;
+      const highSurcharge = calculateMedicareSurcharge(taxYear, highIncome, false, 'partnered', 0);
+      expect(highSurcharge).toBeCloseTo(highIncome * 0.015, 0); // 1.5% tier
+    });
+  });
+
+  describe('ATO example calculations with families', () => {
+    it('should match ATO examples for couples', () => {
+      // Example: Couple with 2 children, income $196,000, no PHI
+      // Threshold: $194,000 + (1 × $1,500) = $195,500 (first child free, second adds $1,500)
+      // Income $196,000 is in Tier 1 (scaled): 1% surcharge
+      const surcharge = calculateMedicareSurcharge('2024-25', 196000, false, 'partnered', 2);
+      expect(surcharge).toBe(1960); // 1% of $196,000
+    });
+
+    it('should match examples for singles with dependents', () => {
+      // Example: Single with 1 child, income $194,000, no PHI
+      // Threshold: $194,000 (family threshold, first child free)
+      // Exactly at threshold: no surcharge
+      expect(calculateMedicareSurcharge('2024-25', 194000, false, 'single', 1)).toBe(0);
+
+      // $1 over threshold: enters tier 1
+      const surcharge = calculateMedicareSurcharge('2024-25', 194001, false, 'single', 1);
+      expect(surcharge).toBeCloseTo(1940.01, 0); // ~1% of $194,001
+    });
+
+    it('should handle high-income families correctly', () => {
+      // Couple with 3 children, income $320,000, no PHI
+      // Threshold: $194,000 + (2 × $1,500) = $197,000 (first child free, 2nd and 3rd add $1,500 each)
+      // Well into tier 3 (scaled): 1.5% surcharge
+      const surcharge = calculateMedicareSurcharge('2024-25', 320000, false, 'partnered', 3);
+      expect(surcharge).toBeCloseTo(4800, 0); // 1.5% of $320,000
+    });
+  });
+
+  describe('Edge cases with family status', () => {
+    it('should handle negative dependents as zero', () => {
+      expect(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered', -5))
+        .toBe(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered', 0));
+    });
+
+    it('should handle zero dependents correctly', () => {
+      expect(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered', 0)).toBe(2000);
+      expect(calculateMedicareSurcharge(taxYear, 97001, false, 'single', 0)).toBeCloseTo(970.01, 2);
+    });
+
+    it('should handle large number of dependents', () => {
+      // 10 dependents: threshold = $194,000 + (9 × $1,500) = $207,500
+      expect(calculateMedicareSurcharge(taxYear, 207500, false, 'partnered', 10)).toBe(0);
+      expect(calculateMedicareSurcharge(taxYear, 208000, false, 'partnered', 10)).toBeCloseTo(2080, 0);
+    });
+
+    it('should respect PHI exemption regardless of family status', () => {
+      expect(calculateMedicareSurcharge(taxYear, 200000, true, 'partnered', 2)).toBe(0);
+      expect(calculateMedicareSurcharge(taxYear, 200000, true, 'single', 1)).toBe(0);
+      expect(calculateMedicareSurcharge(taxYear, 320000, true, 'partnered', 5)).toBe(0);
+    });
+  });
+
+  describe('Backward compatibility - default parameters', () => {
+    it('should default to single status when familyStatus not provided', () => {
+      // These should behave exactly like the old function signature
+      expect(calculateMedicareSurcharge(taxYear, 90000, false)).toBe(0);
+      expect(calculateMedicareSurcharge(taxYear, 100000, false)).toBe(1000);
+      expect(calculateMedicareSurcharge(taxYear, 120000, false)).toBe(1500);
+    });
+
+    it('should default to zero dependents when not provided', () => {
+      expect(calculateMedicareSurcharge(taxYear, 200000, false, 'partnered')).toBe(2000);
+      expect(calculateMedicareSurcharge(taxYear, 100000, false, 'single')).toBe(1000);
+    });
+  });
+
+  describe('Family status across all tax years', () => {
+    const taxYears: TaxYearId[] = [
+      '2020-21',
+      '2021-22',
+      '2022-23',
+      '2023-24',
+      '2024-25',
+      '2025-26',
+    ];
+
+    taxYears.forEach((year) => {
+      describe(`${year} - family thresholds`, () => {
+        it('should use family thresholds consistently', () => {
+          // Single threshold
+          expect(calculateMedicareSurcharge(year, 97000, false, 'single', 0)).toBe(0);
+          expect(calculateMedicareSurcharge(year, 100000, false, 'single', 0)).toBe(1000);
+
+          // Family threshold
+          expect(calculateMedicareSurcharge(year, 194000, false, 'partnered', 0)).toBe(0);
+          expect(calculateMedicareSurcharge(year, 200000, false, 'partnered', 0)).toBe(2000);
+
+          // With dependents
+          expect(calculateMedicareSurcharge(year, 200000, false, 'partnered', 2)).toBe(0);
+          expect(calculateMedicareSurcharge(year, 205000, false, 'partnered', 2)).toBe(2050);
+        });
+      });
+    });
+  });
 });

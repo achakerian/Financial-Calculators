@@ -94,6 +94,10 @@ export interface LoanComparisonInputs {
   personalLoanRate: number;
   personalLoanTermYears: number;
 
+  // Fees
+  mortgageFeesYearly?: number;     // Yearly mortgage fees
+  personalFeesMonthly?: number;    // Monthly personal loan fees
+
   // Common settings
   frequency: RepaymentFrequency;
   repaymentType: RepaymentType;
@@ -695,6 +699,14 @@ export function compareMortgageVsPersonalLoan(
 
   const totalAmount = inputs.fullMortgageAmount + inputs.personalLoanAmount;
 
+  // Calculate total fees
+  const mortgageFeesYearly = inputs.mortgageFeesYearly || 0;
+  const personalFeesMonthly = inputs.personalFeesMonthly || 0;
+
+  const fullMortgageTotalFees = mortgageFeesYearly * inputs.mortgageTermYears;
+  const splitMortgageTotalFees = mortgageFeesYearly * inputs.mortgageTermYears;
+  const personalLoanTotalFees = personalFeesMonthly * (inputs.personalLoanTermYears * 12);
+
   // 1. Generate Scenario A (Full Mortgage for TOTAL amount)
   const fullMortgage = generateAmortisation({
     amount: totalAmount,  // Use total of both amounts
@@ -742,27 +754,27 @@ export function compareMortgageVsPersonalLoan(
     // Scenario A
     fullMortgagePayment: fullMortgage.summary.regularPayment,
     fullMortgageTotalInterest: fullMortgage.summary.totalInterest,
-    fullMortgageTotalPaid: fullMortgage.summary.totalPaid,
+    fullMortgageTotalPaid: fullMortgage.summary.totalPaid + fullMortgageTotalFees,
     fullMortgagePayoffDate: fullMortgage.summary.payoffDate,
 
     // Scenario B - Mortgage
     splitMortgageAmount: inputs.fullMortgageAmount,
     splitMortgagePayment: splitMortgage.summary.regularPayment,
     splitMortgageTotalInterest: splitMortgage.summary.totalInterest,
-    splitMortgageTotalPaid: splitMortgage.summary.totalPaid,
+    splitMortgageTotalPaid: splitMortgage.summary.totalPaid + splitMortgageTotalFees,
     splitMortgagePayoffDate: splitMortgage.summary.payoffDate,
 
     // Scenario B - Personal
     splitPersonalAmount: inputs.personalLoanAmount,
     splitPersonalPayment: splitPersonalLoan.summary.regularPayment,
     splitPersonalTotalInterest: splitPersonalLoan.summary.totalInterest,
-    splitPersonalTotalPaid: splitPersonalLoan.summary.totalPaid,
+    splitPersonalTotalPaid: splitPersonalLoan.summary.totalPaid + personalLoanTotalFees,
     splitPersonalPayoffDate: splitPersonalLoan.summary.payoffDate,
 
     // Scenario B - Combined
     splitCombinedPaymentInitial: splitMortgage.summary.regularPayment + splitPersonalLoan.summary.regularPayment,
     splitCombinedTotalInterest: splitMortgage.summary.totalInterest + splitPersonalLoan.summary.totalInterest,
-    splitCombinedTotalPaid: splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid,
+    splitCombinedTotalPaid: splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid + splitMortgageTotalFees + personalLoanTotalFees,
 
     // Differences (existing)
     monthlyPaymentDifferenceInitial:
@@ -770,7 +782,7 @@ export function compareMortgageVsPersonalLoan(
     totalInterestDifference:
       (splitMortgage.summary.totalInterest + splitPersonalLoan.summary.totalInterest) - fullMortgage.summary.totalInterest,
     totalPaidDifference:
-      (splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid) - fullMortgage.summary.totalPaid,
+      (splitMortgage.summary.totalPaid + splitPersonalLoan.summary.totalPaid + splitMortgageTotalFees + personalLoanTotalFees) - (fullMortgage.summary.totalPaid + fullMortgageTotalFees),
 
     // Monthly payment after personal loan ends
     splitMortgageOnlyPayment: splitMortgage.summary.regularPayment,
@@ -792,7 +804,8 @@ export type {
   PayCalculateResponse,
   TaxYearId,
   PayFrequency,
-  Residency
+  Residency,
+  FamilyStatus
 } from './pay/types';
 
 // Tax year data types

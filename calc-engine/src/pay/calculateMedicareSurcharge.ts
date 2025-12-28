@@ -11,46 +11,46 @@
  * - $113,001 - $151,000: 1.25%
  * - $151,001+: 1.5%
  *
- * Note: Family thresholds are higher and include additional amounts per dependent.
- * This function implements single thresholds only.
+ * Family thresholds:
+ * - Couples/families: $194,000 base threshold
+ * - Additional per dependent child: $3,000
+ * - Tier boundaries scale proportionally with effective threshold
  *
  * @see https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge
  */
 
-import type { TaxYearId } from './types';
+import type { TaxYearId, FamilyStatus } from './types';
+import { TAX_YEAR_MAP } from './taxYearData';
 
 const clamp0 = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
 
 /**
- * Medicare Levy Surcharge tiers
- * Note: These are relatively stable across tax years, but could be moved to
- * taxYearData.ts if they start varying significantly.
- */
-const MLS_TIERS = [
-  { from: 0, to: 97000, rate: 0 },
-  { from: 97000, to: 113000, rate: 0.01 },
-  { from: 113000, to: 151000, rate: 0.0125 },
-  { from: 151000, rate: 0.015 },
-] as const;
-
-/**
  * Calculate Medicare Levy Surcharge
  *
- * @param taxYear - Tax year ID (currently unused, but included for future-proofing)
+ * @param taxYear - Tax year ID
  * @param taxableIncome - Annual taxable income
  * @param hasPrivateHealth - Whether taxpayer has private hospital cover
+ * @param familyStatus - Family status (single or partnered)
+ * @param dependents - Number of dependent children (applies to both single and partnered)
  * @returns MLS amount (always >= 0)
  *
  * @example
- * calculateMedicareSurcharge('2024-25', 90000, false)   // Returns 0 (below threshold)
- * calculateMedicareSurcharge('2024-25', 100000, false)  // Returns 1000 (1% of income)
- * calculateMedicareSurcharge('2024-25', 100000, true)   // Returns 0 (has private health)
- * calculateMedicareSurcharge('2024-25', 120000, false)  // Returns 1500 (1.25% of income)
+ * // Singles
+ * calculateMedicareSurcharge('2024-25', 90000, false, 'single', 0)   // Returns 0 (below threshold)
+ * calculateMedicareSurcharge('2024-25', 100000, false, 'single', 0)  // Returns 1000 (1% of income)
+ * calculateMedicareSurcharge('2024-25', 100000, true, 'single', 0)   // Returns 0 (has private health)
+ * calculateMedicareSurcharge('2024-25', 100000, false, 'single', 1)  // Returns 0 (single + 1 child, threshold = $100k)
+ *
+ * // Partnered
+ * calculateMedicareSurcharge('2024-25', 200000, false, 'partnered', 0)  // Returns 2000 (1% of income)
+ * calculateMedicareSurcharge('2024-25', 205000, false, 'partnered', 2)  // Returns 2050 (1%, threshold = $200k)
  */
 export function calculateMedicareSurcharge(
   taxYear: TaxYearId,
   taxableIncome: number,
-  hasPrivateHealth: boolean
+  hasPrivateHealth: boolean,
+  familyStatus: FamilyStatus = 'single',
+  dependents: number = 0
 ): number {
   // No surcharge if has private health insurance
   if (hasPrivateHealth) {
@@ -64,9 +64,35 @@ export function calculateMedicareSurcharge(
 
   const income = clamp0(taxableIncome);
 
+  // Get MLS configuration for this tax year
+  const mlsConfig = TAX_YEAR_MAP[taxYear].medicareSurcharge;
+
+  // Calculate effective threshold based on family status and dependents
+  // Singles with dependents use family threshold (they are single parents)
+  // ATO rule: family threshold increased by $1,500 for each child AFTER the first
+  const hasFamily = familyStatus === 'partnered' || dependents > 0;
+  const baseThreshold = hasFamily ? mlsConfig.familyThreshold : mlsConfig.singleThreshold;
+  const dependentAdjustment = hasFamily ? Math.max(0, dependents - 1) * mlsConfig.perDependentAmount : 0;
+  const effectiveThreshold = baseThreshold + dependentAdjustment;
+
+  // Check if below threshold (no surcharge)
+  if (income <= effectiveThreshold) {
+    return 0;
+  }
+
+  // Scale tier boundaries proportionally (only for tiers above threshold)
+  const thresholdScaleFactor = effectiveThreshold / mlsConfig.singleThreshold;
+  const scaledTiers = mlsConfig.tiers
+    .filter(tier => tier.rate > 0) // Only scale tiers with actual surcharge
+    .map(tier => ({
+      from: tier.from * thresholdScaleFactor,
+      to: tier.to ? tier.to * thresholdScaleFactor : undefined,
+      rate: tier.rate
+    }));
+
   // Find applicable tier
-  const tier = MLS_TIERS.find(
-    (t) => income >= t.from && (!('to' in t) || income <= t.to)
+  const tier = scaledTiers.find(
+    (t) => income >= t.from && (!t.to || income <= t.to)
   );
 
   return (tier?.rate ?? 0) * income;
