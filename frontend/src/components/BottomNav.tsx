@@ -8,9 +8,9 @@ import {
 } from './icons';
 
 const navItems = [
-  { to: '/loans', label: 'Loans', icon: HomeIcon, color: 'text-orange-500' },
+  { to: '/home', label: 'Home', icon: HomeIcon, color: 'text-orange-500' },
   { to: '/pay-tax', label: 'Pay & Tax', icon: CalculatorIcon, color: 'text-violet-500' },
-  { to: '/super', label: 'Super', icon: PiggyBankIcon, color: 'text-green-500' },
+  { to: '/investments', label: 'Investments', icon: PiggyBankIcon, color: 'text-green-500' },
   { to: '/information', label: 'Information', icon: InfoIcon, color: 'text-blue-500' },
 ];
 

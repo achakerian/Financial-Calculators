@@ -90,7 +90,7 @@ const infoItems: FeatureAccordionItem[] = [
     content: <MLSInformationSection />,
   },
   {
-    badge: 'Super',
+    badge: 'Investments',
     title: 'Superannuation Contributions',
     content: <SuperContributionsInformationSection />,
   },

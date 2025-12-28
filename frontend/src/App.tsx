@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
-import { LoansPage } from './pages/LoansPage';
+import { HomePage } from './pages/HomePage';
 import { PayTaxPage } from './pages/PayTaxPage';
-import { SuperPage } from './pages/SuperPage';
+import { InvestmentsPage } from './pages/InvestmentsPage';
 import { LoginPage } from './pages/LoginPage';
 import { InformationPage } from './pages/InformationPage';
 
@@ -14,13 +14,16 @@ export const App: React.FC = () => {
     <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="/loans" replace />} />
-          <Route path="loans" element={<LoansPage />} />
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<HomePage />} />
           <Route path="pay-tax" element={<PayTaxPage />} />
-          <Route path="super" element={<SuperPage />} />
+          <Route path="investments" element={<InvestmentsPage />} />
           <Route path="information" element={<InformationPage />} />
           <Route path="login" element={<LoginPage />} />
-          <Route path="*" element={<Navigate to="/loans" replace />} />
+          {/* Legacy routes for backwards compatibility */}
+          <Route path="loans" element={<Navigate to="/home" replace />} />
+          <Route path="super" element={<Navigate to="/investments" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -5,13 +5,13 @@ import { SuperComingSoonSection } from '../features/SuperComingSoonSection';
 
 const items: FeatureAccordionItem[] = [
   {
-    badge: 'Super',
-    title: '🚧 Superannuation Calculator (in development)',
+    badge: 'Investments',
+    title: '🚧 Investment Calculators (in development)',
     content: <SuperComingSoonSection />,
   },
 ];
 
-export const SuperPage: React.FC = () => {
+export const InvestmentsPage: React.FC = () => {
   return (
     <PageContainer borderColor="bg-green-500">
       <FeatureAccordion items={items} initialOpen={null} />
