@@ -6,7 +6,8 @@
       "Bash(git push)",
       "WebFetch(domain:www.ato.gov.au)",
       "WebSearch",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(gh label create:*)"
     ],
     "deny": [],
     "ask": []
